@@ -10,6 +10,7 @@ import (
 	"os"
 
 	tftp "github.com/pin/tftp"
+	"github.com/zignig/cohort/assets"
 )
 
 var m map[string][]byte
@@ -46,7 +47,7 @@ func HandleRead(filename string, w *io.PipeWriter) {
 	}
 }
 
-func tftpServer() {
+func tftpServer(conf *Config, cache *assets.Cache) {
 	m = make(map[string][]byte)
 	fmt.Println("start tftp")
 	addrStr := flag.String("l", ":69", "Address to listen")

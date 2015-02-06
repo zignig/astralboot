@@ -16,11 +16,11 @@ func main() {
 	leases := NewStore("")
 
 	fmt.Println("starting tftp")
-	go tftpServer()
+	go tftpServer(conf, cache)
 	fmt.Println("start dhcp")
-	go dhcpServer(leases)
-	a, err := cache.Ls(conf.Ref)
-	fmt.Println(string(a), err)
+	go dhcpServer(conf, leases)
+
+	// gorotiune spinner
 	c := make(chan int, 1)
 	<-c
 }

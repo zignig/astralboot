@@ -20,22 +20,23 @@ func info() {
 }
 
 // Example using DHCP with a single network interface device
-func dhcpServer(l *Store) {
-	serverIP := net.IP{10, 251, 10, 228}
+func dhcpServer(c *Config, l *Store) {
+	serverIP := net.IP{192, 168, 1, 1}
 	handler := &DHCPHandler{
 		ip:            serverIP,
 		leaseDuration: 2 * time.Hour,
-		start:         net.IP{172, 30, 0, 2},
+		start:         net.IP{192, 168, 1, 2},
 		leaseRange:    50,
 		leases:        l,
 		options: dhcp.Options{
-			dhcp.OptionSubnetMask:       []byte{255, 255, 240, 0},
+			dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
+			dhcp.OptionTFTPServerName:   []byte(serverIP),
 			dhcp.OptionRouter:           []byte(serverIP), // Presuming Server is also your router
 			dhcp.OptionDomainNameServer: []byte(serverIP), // Presuming Server is also your DNS server
 		},
 	}
 	fmt.Println("start dhcp")
-	log.Fatal(dhcp.ListenAndServeIf("eth0", handler)) // Select interface on multi interface device
+	log.Fatal(dhcp.ListenAndServeIf("eth1", handler)) // Select interface on multi interface device
 	fmt.Println("end dhcp")
 }
 
@@ -54,14 +55,36 @@ type DHCPHandler struct {
 }
 
 func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options dhcp.Options) (d dhcp.Packet) {
-	//fmt.Println(p)
-	//fmt.Println(p.CHAddr())
-	if h.leases.CheckLease(p.CHAddr()) == false {
-		h.leases.NewLease(p.CHAddr())
+	fmt.Println(p)
+	fmt.Println(p.CHAddr())
+	//if h.leases.CheckLease(p.CHAddr()) == false {
+	//	h.leases.NewLease(p.CHAddr())
+	//}
+	switch msgType {
+	case dhcp.Discover:
+		fmt.Println("Discover")
+		if options[60] != nil {
+			vendor := string(options[60])
+			if vendor == "PXEClient:Arch:00000:UNDI:002001" {
+				fmt.Println("OFFER")
+				return dhcp.ReplyPacket(p, dhcp.Offer, h.ip, net.IP{192, 168, 1, 1}, h.leaseDuration,
+					h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
+			}
+		}
+		return nil
+	case dhcp.Request:
+		fmt.Println("Request")
+		return dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
+			h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
+		break
+	case dhcp.Release:
+		fmt.Println("Release")
+		break
+	case dhcp.Decline:
+		fmt.Println("Decline")
+		break
 	}
-	if options[60] != nil {
-		fmt.Println(string(options[60]))
-	}
+
 	return nil
 }
 
