@@ -46,8 +46,8 @@ type DHCPHandler struct {
 }
 
 func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options dhcp.Options) (d dhcp.Packet) {
-	fmt.Println(p)
-	fmt.Println(p.CHAddr())
+	//fmt.Println(p)
+	//fmt.Println(p.CHAddr())
 	if h.leases.CheckLease(p.CHAddr()) == false {
 		h.leases.NewLease(p.CHAddr())
 	}
@@ -55,4 +55,23 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		fmt.Println(string(options[60]))
 	}
 	return nil
+}
+
+func cidr() {
+	ip, ipnet, err := net.ParseCIDR("192.168.1.0/24")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
+		fmt.Println(ip)
+	}
+}
+
+func inc(ip net.IP) {
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] > 0 {
+			break
+		}
+	}
 }
