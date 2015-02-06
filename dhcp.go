@@ -15,6 +15,7 @@ func info() {
 	in, _ := net.Interfaces()
 	for i := range in {
 		fmt.Println(in[i])
+		fmt.Println(in[i].Addrs())
 	}
 }
 
