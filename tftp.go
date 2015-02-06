@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -32,7 +33,12 @@ func HandleWrite(filename string, r *io.PipeReader) {
 }
 
 func HandleRead(filename string, w *io.PipeWriter) {
+	fmt.Println("Filename :", filename)
+	for i := range m {
+		fmt.Println(i)
+	}
 	b, exists := m[filename]
+	fmt.Println("exists ", exists)
 	if exists {
 		buffer := bytes.NewBuffer(b)
 		c, e := buffer.WriteTo(w)
@@ -56,6 +62,13 @@ func tftpServer(conf *Config, cache *assets.Cache) {
 	if e != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", e)
 		return
+	}
+	fmt.Printf("load undi")
+	d, e := ioutil.ReadFile("data/tftp/undionly.kpxe")
+	fmt.Println(e)
+	m["/undionly.kpxe"] = d
+	for i := range m {
+		fmt.Println(i)
 	}
 	log := log.New(os.Stderr, "", log.Ldate|log.Ltime)
 	s := tftp.Server{addr, HandleWrite, HandleRead, log}

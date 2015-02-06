@@ -21,16 +21,16 @@ func info() {
 
 // Example using DHCP with a single network interface device
 func dhcpServer(c *Config, l *Store) {
-	serverIP := net.IP{192, 168, 1, 1}
+	serverIP := net.IP{192, 168, 2, 1}
 	handler := &DHCPHandler{
 		ip:            serverIP,
 		leaseDuration: 2 * time.Hour,
-		start:         net.IP{192, 168, 1, 2},
+		start:         net.IP{192, 168, 2, 2},
 		leaseRange:    50,
 		leases:        l,
 		options: dhcp.Options{
 			dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
-			dhcp.OptionTFTPServerName:   []byte(serverIP),
+			dhcp.OptionBootFileName:     []byte("undionly.kpxe"),
 			dhcp.OptionRouter:           []byte(serverIP), // Presuming Server is also your router
 			dhcp.OptionDomainNameServer: []byte(serverIP), // Presuming Server is also your DNS server
 		},
@@ -57,9 +57,9 @@ type DHCPHandler struct {
 func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options dhcp.Options) (d dhcp.Packet) {
 	fmt.Println(p)
 	fmt.Println(p.CHAddr())
-	//if h.leases.CheckLease(p.CHAddr()) == false {
-	//	h.leases.NewLease(p.CHAddr())
-	//}
+	if h.leases.CheckLease(p.CHAddr()) == false {
+		h.leases.NewLease(p.CHAddr())
+	}
 	switch msgType {
 	case dhcp.Discover:
 		fmt.Println("Discover")
@@ -67,16 +67,19 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 			vendor := string(options[60])
 			if vendor == "PXEClient:Arch:00000:UNDI:002001" {
 				fmt.Println("OFFER")
-				return dhcp.ReplyPacket(p, dhcp.Offer, h.ip, net.IP{192, 168, 1, 1}, h.leaseDuration,
+				return dhcp.ReplyPacket(p, dhcp.Offer, h.ip, net.IP{192, 168, 2, 2}, h.leaseDuration,
 					h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			}
 		}
 		return nil
 	case dhcp.Request:
 		fmt.Println("Request")
-		return dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
+		//t := net.IP(h.ip).To4()
+		//n := copy(p[20:24], t)
+		rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 			h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
-		break
+		rp.SetSIAddr(h.ip)
+		return rp
 	case dhcp.Release:
 		fmt.Println("Release")
 		break
