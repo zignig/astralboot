@@ -11,6 +11,13 @@ import (
 	"time"
 )
 
+func info() {
+	in, _ := net.Interfaces()
+	for i := range in {
+		fmt.Println(in[i])
+	}
+}
+
 // Example using DHCP with a single network interface device
 func dhcpServer(l *Store) {
 	serverIP := net.IP{10, 251, 10, 228}

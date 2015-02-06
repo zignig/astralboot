@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	info()
 	fmt.Println("loading config")
 	conf := GetConfig("config.toml")
 	// cache for data files
