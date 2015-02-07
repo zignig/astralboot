@@ -20,6 +20,8 @@ func main() {
 	fmt.Println("start dhcp")
 	go dhcpServer(conf, leases)
 
+	fmt.Println("start web server")
+	go webServer(conf, leases)
 	// gorotiune spinner
 	c := make(chan int, 1)
 	<-c

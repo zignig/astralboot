@@ -77,8 +77,16 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 			rp.SetSIAddr(h.ip)
 			return rp
 		case "skinny":
-			fmt.Println("skinnt request")
-			return nil
+			fmt.Println("skinny request")
+			skinnyOptions := dhcp.Options{
+				dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
+				dhcp.OptionBootFileName:     []byte("http://192.168.2.1/boot/stuff"),
+				dhcp.OptionRouter:           []byte(h.ip), // Presuming Server is also your router
+				dhcp.OptionDomainNameServer: []byte(h.ip), // Presuming Server is also your DNS server
+			}
+			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
+				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
+			return rp
 		}
 	case dhcp.Release:
 		fmt.Println("Release")
