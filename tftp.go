@@ -33,9 +33,9 @@ func HandleWrite(filename string, r *io.PipeReader) {
 }
 
 func HandleRead(filename string, w *io.PipeWriter) {
-	fmt.Println("Filename :", filename)
+	fmt.Printf("Filename : %v \n", []byte(filename))
 	for i := range m {
-		fmt.Println(i)
+		fmt.Println([]byte(i))
 	}
 	b, exists := m[filename]
 	fmt.Println("exists ", exists)
@@ -66,7 +66,7 @@ func tftpServer(conf *Config, cache *assets.Cache) {
 	fmt.Printf("load undi")
 	d, e := ioutil.ReadFile("data/tftp/undionly.kpxe")
 	fmt.Println(e)
-	m["/undionly.kpxe"] = d
+	m["undionly.kpxe\x00"] = d
 	for i := range m {
 		fmt.Println(i)
 	}

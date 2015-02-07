@@ -55,31 +55,31 @@ type DHCPHandler struct {
 }
 
 func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options dhcp.Options) (d dhcp.Packet) {
-	fmt.Println(p)
-	fmt.Println(p.CHAddr())
+	//fmt.Println(p)
+	//fmt.Println(p.CHAddr())
 	if h.leases.CheckLease(p.CHAddr()) == false {
 		h.leases.NewLease(p.CHAddr())
 	}
 	switch msgType {
 	case dhcp.Discover:
 		fmt.Println("Discover")
-		if options[60] != nil {
-			vendor := string(options[60])
-			if vendor == "PXEClient:Arch:00000:UNDI:002001" {
-				fmt.Println("OFFER")
-				return dhcp.ReplyPacket(p, dhcp.Offer, h.ip, net.IP{192, 168, 2, 2}, h.leaseDuration,
-					h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
-			}
-		}
+		return dhcp.ReplyPacket(p, dhcp.Offer, h.ip, net.IP{192, 168, 2, 2}, h.leaseDuration,
+			h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 		return nil
 	case dhcp.Request:
 		fmt.Println("Request")
-		//t := net.IP(h.ip).To4()
-		//n := copy(p[20:24], t)
-		rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
-			h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
-		rp.SetSIAddr(h.ip)
-		return rp
+		userClass := string(options[77])
+		switch userClass {
+		case "iPXE":
+			fmt.Println("iPXE request")
+			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
+				h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
+			rp.SetSIAddr(h.ip)
+			return rp
+		case "skinny":
+			fmt.Println("skinnt request")
+			return nil
+		}
 	case dhcp.Release:
 		fmt.Println("Release")
 		break
