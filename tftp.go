@@ -17,19 +17,7 @@ import (
 var m map[string][]byte
 
 func HandleWrite(filename string, r *io.PipeReader) {
-	_, exists := m[filename]
-	if exists {
-		r.CloseWithError(fmt.Errorf("File already exists: %s", filename))
-		return
-	}
-	buffer := &bytes.Buffer{}
-	c, e := buffer.ReadFrom(r)
-	if e != nil {
-		fmt.Fprintf(os.Stderr, "Can't receive %s: %v\n", filename, e)
-	} else {
-		fmt.Fprintf(os.Stderr, "Received %s (%d bytes)\n", filename, c)
-		m[filename] = buffer.Bytes()
-	}
+	r.CloseWithError(fmt.Errorf("Server is Read Only"))
 }
 
 func HandleRead(filename string, w *io.PipeWriter) {

@@ -63,10 +63,12 @@ func (s Store) Query(q string) error {
 
 // Session storage
 type Lease struct {
-	Id  int64
-	MAC string
-	//IP       int64
+	Id      int64
+	MAC     string
+	IP      string
 	Active  bool
+	Distro  string
+	Name    string
 	Created time.Time
 }
 
@@ -92,4 +94,8 @@ func (s Store) CheckLease(mac net.HardwareAddr) bool {
 		return true
 	}
 	return false
+}
+
+func (s Store) Release(mac net.HardwareAddr) {
+	//TODO update lease to be active false
 }
