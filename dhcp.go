@@ -60,6 +60,12 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 	if h.leases.CheckLease(p.CHAddr()) == false {
 		h.leases.NewLease(p.CHAddr())
 	}
+	skinnyOptions := dhcp.Options{
+		dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
+		dhcp.OptionBootFileName:     []byte("http://192.168.2.1/ipxe/start"),
+		dhcp.OptionRouter:           []byte(h.ip), // Presuming Server is also your router
+		dhcp.OptionDomainNameServer: []byte(h.ip), // Presuming Server is also your DNS server
+	}
 	switch msgType {
 	case dhcp.Discover:
 		fmt.Println("Discover")
@@ -78,12 +84,10 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 			return rp
 		case "skinny":
 			fmt.Println("skinny request")
-			skinnyOptions := dhcp.Options{
-				dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
-				dhcp.OptionBootFileName:     []byte("http://192.168.2.1/boot/stuff"),
-				dhcp.OptionRouter:           []byte(h.ip), // Presuming Server is also your router
-				dhcp.OptionDomainNameServer: []byte(h.ip), // Presuming Server is also your DNS server
-			}
+			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
+				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
+			return rp
+		default:
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			return rp
