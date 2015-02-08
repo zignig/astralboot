@@ -11,14 +11,6 @@ import (
 	"time"
 )
 
-func info() {
-	in, _ := net.Interfaces()
-	for i := range in {
-		fmt.Println(in[i])
-		fmt.Println(in[i].Addrs())
-	}
-}
-
 // Example using DHCP with a single network interface device
 func dhcpServer(c *Config, l *Store) {
 	serverIP := net.IP{192, 168, 2, 1}
@@ -36,7 +28,7 @@ func dhcpServer(c *Config, l *Store) {
 		},
 	}
 	fmt.Println("start dhcp")
-	log.Fatal(dhcp.ListenAndServeIf("eth1", handler)) // Select interface on multi interface device
+	log.Fatal(dhcp.ListenAndServeIf(c.Interf, handler)) // Select interface on multi interface device
 	fmt.Println("end dhcp")
 }
 
@@ -62,14 +54,20 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 	}
 	skinnyOptions := dhcp.Options{
 		dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
-		dhcp.OptionBootFileName:     []byte("http://192.168.2.1/ipxe/start"),
+		dhcp.OptionBootFileName:     []byte("http://192.168.2.1/choose"),
 		dhcp.OptionRouter:           []byte(h.ip), // Presuming Server is also your router
 		dhcp.OptionDomainNameServer: []byte(h.ip), // Presuming Server is also your DNS server
+	}
+	IP, err := h.leases.GetIP(p.CHAddr())
+	fmt.Println("IP for the lease is ", IP)
+	if err != nil {
+		fmt.Println("lease get fail ", err)
+		return nil
 	}
 	switch msgType {
 	case dhcp.Discover:
 		fmt.Println("Discover")
-		return dhcp.ReplyPacket(p, dhcp.Offer, h.ip, net.IP{192, 168, 2, 2}, h.leaseDuration,
+		return dhcp.ReplyPacket(p, dhcp.Offer, h.ip, IP, h.leaseDuration,
 			h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 		return nil
 	case dhcp.Request:
@@ -101,23 +99,4 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 	}
 
 	return nil
-}
-
-func cidr() {
-	ip, ipnet, err := net.ParseCIDR("192.168.1.0/24")
-	if err != nil {
-		log.Fatal(err)
-	}
-	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
-		fmt.Println(ip)
-	}
-}
-
-func inc(ip net.IP) {
-	for j := len(ip) - 1; j >= 0; j-- {
-		ip[j]++
-		if ip[j] > 0 {
-			break
-		}
-	}
 }
