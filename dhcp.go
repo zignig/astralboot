@@ -13,9 +13,10 @@ import (
 
 // Example using DHCP with a single network interface device
 func dhcpServer(c *Config, l *Store) {
-	serverIP := net.IP{192, 168, 2, 1}
+	serverIP := c.BaseIP
 	handler := &DHCPHandler{
 		ip:            serverIP,
+		config:        c,
 		leaseDuration: 2 * time.Hour,
 		start:         net.IP{192, 168, 2, 2},
 		leaseRange:    50,
@@ -44,6 +45,7 @@ type DHCPHandler struct {
 	leaseRange    int           // Number of IPs to distribute (starting from start)
 	leaseDuration time.Duration // Lease period
 	leases        *Store        // Map to keep track of leases
+	config        *Config
 }
 
 func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options dhcp.Options) (d dhcp.Packet) {

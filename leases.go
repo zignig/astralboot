@@ -65,7 +65,6 @@ func (s Store) Query(q string) error {
 type Lease struct {
 	Id      int64
 	MAC     string
-	IP      string
 	Active  bool
 	Distro  string
 	Name    string
