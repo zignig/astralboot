@@ -40,6 +40,7 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	}
 	wh.templates = t
 	wh.router.GET("/choose", wh.Lister)
+	wh.router.GET("/start/:dist/:mac", wh.Starter)
 	return wh
 }
 
@@ -47,12 +48,15 @@ func (wh *WebHandler) Run() {
 	wh.router.Run(":80")
 }
 
+func (w *WebHandler) Starter(c *gin.Context) {
+}
+
 func (w *WebHandler) Lister(c *gin.Context) {
 	fmt.Println("lister")
 	fmt.Println(w.config.OSList)
 	var j []OS
-	j = append(j, OS{"debian", "Debian", ""})
-	j = append(j, OS{"coreos", "CoreOS", ""})
+	j = append(j, OS{"debian", "Debian"})
+	j = append(j, OS{"coreos", "CoreOS"})
 	for i, v := range w.config.OSList {
 		fmt.Println(i, v)
 	}
@@ -71,7 +75,7 @@ item {{ .Name }} {{ .Description }}{{ end }}
 choose os
 goto $os{{ range .}}
 :{{ .Name }}
-chain http://192.168.2.1/boot/{{ .Name }}/${net0/mac}
+chain http://192.168.2.1/start/{{ .Name }}/${net0/mac}
 goto top
 {{ end }}
 

@@ -10,7 +10,6 @@ import (
 type OS struct {
 	Name        string
 	Description string
-	Url         string
 }
 
 type Config struct {
@@ -39,10 +38,14 @@ func GetConfig(path string) (c *Config) {
 	serverAddress, _, _ := net.ParseCIDR(addressList[0].String())
 	fmt.Println("Server Address  :", serverAddress)
 	c.BaseIP = serverAddress
+
 	// database file name
 	if c.DBname == "" {
 		c.DBname = "./leases.db"
 	}
+
+	// distributions
+
 	return
 }
 
