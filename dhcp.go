@@ -56,7 +56,7 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 	}
 	skinnyOptions := dhcp.Options{
 		dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
-		dhcp.OptionBootFileName:     []byte("http://192.168.2.1/choose"),
+		dhcp.OptionBootFileName:     []byte("http://" + h.ip.String() + "/choose"),
 		dhcp.OptionRouter:           []byte(h.ip), // Presuming Server is also your router
 		dhcp.OptionDomainNameServer: []byte(h.ip), // Presuming Server is also your DNS server
 	}
