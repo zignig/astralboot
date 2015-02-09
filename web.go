@@ -76,7 +76,7 @@ func (w *WebHandler) Lister(c *gin.Context) {
 var OsSelector = `#!ipxe
 
 :top{{ $serverIP := .BaseIP }}
-menu Choose and operating sytem {{ range .OSList}}
+menu Choose an operating sytem {{ range .OSList}}
 item {{ .Name }} {{ .Description }}{{ end }}
 choose os && goto ${os}
 {{ range .OSList}}
