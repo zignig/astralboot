@@ -50,6 +50,10 @@ func (wh *WebHandler) Run() {
 }
 
 func (w *WebHandler) Starter(c *gin.Context) {
+	name := c.Params.ByName("dist")
+	mac := c.Params.ByName("mac")
+	fmt.Println("starter call")
+	fmt.Println(name, mac)
 	c.String(200, defaultText)
 }
 

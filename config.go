@@ -52,6 +52,8 @@ func GetConfig(path string, cache *assets.Cache) (c *Config) {
 	j = append(j, OS{"debian", "Debian"})
 	j = append(j, OS{"coreos", "CoreOS"})
 	c.OSList = j
+	t, _ := cache.Ls(c.Ref + "/boot/")
+	fmt.Println(string(t))
 	return
 }
 
