@@ -20,6 +20,7 @@ type Config struct {
 	BaseIP net.IP
 	DBname string
 	OSList []OS
+	cache  *assets.Cache
 }
 
 func GetConfig(path string, cache *assets.Cache) (c *Config) {
@@ -28,6 +29,8 @@ func GetConfig(path string, cache *assets.Cache) (c *Config) {
 		fmt.Println(err)
 		return
 	}
+	// bind the cache (not exported)
+	c.cache = cache
 	// Add items from system not in config file
 	if c.Interf == "" {
 		c.Interf = "eth0"
@@ -49,11 +52,15 @@ func GetConfig(path string, cache *assets.Cache) (c *Config) {
 	// distributions
 
 	var j []OS
-	j = append(j, OS{"debian", "Debian"})
-	j = append(j, OS{"coreos", "CoreOS"})
+	li := c.OSListGet()
+	if err != nil {
+		fmt.Println("OS listing error")
+		return
+	}
+	for _, i := range li {
+		j = append(j, OS{i, i})
+	}
 	c.OSList = j
-	t, _ := cache.Ls(c.Ref + "/boot/")
-	fmt.Println(string(t))
 	return
 }
 
@@ -61,4 +68,10 @@ func (c *Config) SaveConfig() {
 	buf := new(bytes.Buffer)
 	err := toml.NewEncoder(buf).Encode(c)
 	fmt.Println(buf.String(), err)
+}
+
+func (c *Config) OSListGet() (list []string) {
+	list, _ = c.cache.Listing(c.Ref + "/boot/")
+	fmt.Println("OS listing ", list)
+	return
 }

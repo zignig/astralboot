@@ -75,10 +75,10 @@ func (w *WebHandler) Lister(c *gin.Context) {
 // basic selector for installing OS
 var OsSelector = `#!ipxe
 
-:top{{ $serverIP := .BaseIP }} 
+:top{{ $serverIP := .BaseIP }}
 menu Choose and operating sytem {{ range .OSList}}
 item {{ .Name }} {{ .Description }}{{ end }}
-choose os && goto ${os} 
+choose os && goto ${os}
 {{ range .OSList}}
 :{{ .Name }}
 chain http://{{ $serverIP }}/start/{{ .Name }}/${net0/mac}
