@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"text/template"
 
 	"github.com/gin-gonic/gin"
@@ -55,6 +56,13 @@ func (w *WebHandler) Starter(c *gin.Context) {
 	fmt.Println("starter call")
 	fmt.Println(name, mac)
 	c.String(200, defaultText)
+	macString, err := net.ParseMAC(mac)
+	if err != nil {
+		fmt.Println("mac update error ", err)
+		return
+	}
+	w.store.UpdateActive(macString)
+
 }
 
 func (w *WebHandler) Lister(c *gin.Context) {
