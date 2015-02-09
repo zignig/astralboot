@@ -9,10 +9,11 @@ import (
 func main() {
 	fmt.Println("loading config")
 
-	conf := GetConfig("config.toml")
-	conf.SaveConfig()
 	// cache for data files
 	cache := assets.NewCache()
+
+	conf := GetConfig("config.toml", cache)
+	conf.SaveConfig()
 	// leases sql database
 	leases := NewStore(conf)
 	fmt.Println("starting tftp")

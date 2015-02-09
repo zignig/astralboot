@@ -3,8 +3,10 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/BurntSushi/toml"
 	"net"
+
+	"github.com/BurntSushi/toml"
+	"github.com/zignig/cohort/assets"
 )
 
 type OS struct {
@@ -17,10 +19,10 @@ type Config struct {
 	Interf string `toml:"interface"`
 	BaseIP net.IP
 	DBname string
-	OSList map[string]OS
+	OSList []OS
 }
 
-func GetConfig(path string) (c *Config) {
+func GetConfig(path string, cache *assets.Cache) (c *Config) {
 	if _, err := toml.DecodeFile(path, &c); err != nil {
 		fmt.Println("Config file does not exists,create config")
 		fmt.Println(err)
@@ -46,6 +48,10 @@ func GetConfig(path string) (c *Config) {
 
 	// distributions
 
+	var j []OS
+	j = append(j, OS{"debian", "Debian"})
+	j = append(j, OS{"coreos", "CoreOS"})
+	c.OSList = j
 	return
 }
 

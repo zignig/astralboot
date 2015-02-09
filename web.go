@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"text/template"
+
+	"github.com/gin-gonic/gin"
 )
 
 // construct for web services
@@ -49,18 +50,11 @@ func (wh *WebHandler) Run() {
 }
 
 func (w *WebHandler) Starter(c *gin.Context) {
+	c.String(200, defaultText)
 }
 
 func (w *WebHandler) Lister(c *gin.Context) {
-	fmt.Println("lister")
-	fmt.Println(w.config.OSList)
-	var j []OS
-	j = append(j, OS{"debian", "Debian"})
-	j = append(j, OS{"coreos", "CoreOS"})
-	for i, v := range w.config.OSList {
-		fmt.Println(i, v)
-	}
-	err := w.templates.ExecuteTemplate(c.Writer, "list", j)
+	err := w.templates.ExecuteTemplate(c.Writer, "list", w.config)
 	if err != nil {
 		fmt.Println("template error ", err)
 	}
@@ -69,13 +63,13 @@ func (w *WebHandler) Lister(c *gin.Context) {
 // basic selector for installing OS
 var OsSelector = `#!ipxe
 
-:top
-menu Choose and operating sytem {{ range .}}
+:top{{ $serverIP := .BaseIP }} 
+menu Choose and operating sytem {{ range .OSList}}
 item {{ .Name }} {{ .Description }}{{ end }}
-choose os
-goto $os{{ range .}}
+choose os && goto ${os} 
+{{ range .OSList}}
 :{{ .Name }}
-chain http://192.168.2.1/start/{{ .Name }}/${net0/mac}
+chain http://{{ $serverIP }}/start/{{ .Name }}/${net0/mac}
 goto top
 {{ end }}
 
@@ -90,8 +84,8 @@ boot
 `
 var coreText = `#!ipxe
 
-kernel http://192.168.2.1/boot/coreos_production_pxe.vmlinuz console=tty0 coreos.autologin=tty0 root=/dev/sda1 cloud-config-url=http://192.168.2.1/cloud
-initrd http://192.168.2.1/boot/coreos_production_pxe_image.cpio.gz
+kernel http://192.168.1.1/boot/coreos_production_pxe.vmlinuz console=tty0 coreos.autologin=tty0 root=/dev/sda1 cloud-config-url=http://192.168.1.1/cloud
+initrd http://192.168.1.1/boot/coreos_production_pxe_image.cpio.gz
 boot
 
 `
