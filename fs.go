@@ -3,10 +3,10 @@ package main
 // file system abstraction
 
 import (
+	"github.com/zignig/cohort/assets"
+	"io"
+	"io/ioutil"
 	"os"
-	"time"
-
-	"github.com/spf13/afero"
 )
 
 type localFS struct {
@@ -15,38 +15,45 @@ type localFS struct {
 
 var sl string = string(os.PathSeparator)
 
-func (l localFS) Name() string { return "localFS" }
+// basic interface for readonly file system
+type ROfs interface {
+	// get a string list of the directory
+	List(name string) (names []string, err error)
+	// get an io reader of the data
+	Get(name string) (f io.ReadCloser, err error)
+}
 
-func (l localFS) Create(name string) (afero.File, error) {
-	return os.Create(l.Base + sl + name)
+// basic disk FS
+type Diskfs struct {
+	base string
 }
-func (l localFS) Mkdir(name string, perm os.FileMode) error {
-	return os.Mkdir(l.Base+sl+name, perm)
+
+func (fs *Diskfs) List(name string) (names []string, err error) {
+	fi, err := ioutil.ReadDir(fs.base + sl + name)
+	names = make([]string, len(fi))
+	for i, f := range fi {
+		names[i] = f.Name()
+	}
+	return names, err
 }
-func (l localFS) MkdirAll(path string, perm os.FileMode) error {
-	return os.MkdirAll(l.Base+sl+path, perm)
+func (fs *Diskfs) Get(name string) (f io.ReadCloser, err error) {
+	f, err = os.Open(fs.base + sl + name)
+	return
 }
-func (l localFS) Open(name string) (afero.File, error) {
-	return os.Open(l.Base + sl + name)
+
+// basic ipfs FS
+type IPfsfs struct {
+	// base ipfs reference
+	base string
+	// cache object for ipfs data
+	cache *assets.Cache
 }
-func (l localFS) OpenFile(name string, flag int, perm os.FileMode) (afero.File, error) {
-	return os.OpenFile(l.Base+sl+name, flag, perm)
+
+func (fs *IPfsfs) List(name string) (names []string, err error) {
+	names, err = fs.cache.Listing(fs.base + "/" + name)
+	return
 }
-func (l localFS) Remove(name string) error {
-	return os.Remove(l.Base + sl + name)
-}
-func (l localFS) RemoveAll(path string) error {
-	return os.RemoveAll(l.Base + sl + path)
-}
-func (l localFS) Rename(oldname, newname string) error {
-	return os.Rename(l.Base+sl+oldname, l.Base+sl+newname)
-}
-func (l localFS) Stat(name string) (os.FileInfo, error) {
-	return os.Stat(l.Base + sl + name)
-}
-func (l localFS) Chmod(name string, mode os.FileMode) error {
-	return os.Chmod(l.Base+sl+name, mode)
-}
-func (l localFS) Chtimes(name string, atime time.Time, mtime time.Time) error {
-	return os.Chtimes(l.Base+sl+name, atime, mtime)
+
+func (fs *IPfsfs) Get(name string) (f io.ReadCloser, err error) {
+	return
 }

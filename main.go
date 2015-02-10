@@ -13,11 +13,11 @@ func main() {
 	cache := assets.NewCache()
 
 	conf := GetConfig("config.toml", cache)
-	conf.SaveConfig()
+	conf.PrintConfig()
 	// leases sql database
 	leases := NewStore(conf)
 	fmt.Println("starting tftp")
-	go tftpServer(conf, cache)
+	go tftpServer(conf)
 	fmt.Println("start dhcp")
 	go dhcpServer(conf, leases)
 

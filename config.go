@@ -6,11 +6,10 @@ import (
 	"net"
 
 	"github.com/BurntSushi/toml"
-	"github.com/spf13/afero"
 	"github.com/zignig/cohort/assets"
 )
 
-type OS struct {
+type operatingSystem struct {
 	Name        string
 	Description string
 }
@@ -21,8 +20,8 @@ type Config struct {
 	BaseIP net.IP
 	DBname string
 	// not exported generated config parts
-	fs     *afero.Fs
-	OSList []OS
+	fs     ROfs
+	OSList []operatingSystem
 	cache  *assets.Cache
 }
 
@@ -51,30 +50,29 @@ func GetConfig(path string, cache *assets.Cache) (c *Config) {
 	if c.DBname == "" {
 		c.DBname = "./leases.db"
 	}
+	// mount file system
+	//TODO select file system from flag or config
 
+	var filesystem ROfs = &Diskfs{"./data"}
+	//var filesystem ROfs = &IPfsfs{c.Ref, c.cache}
+	c.fs = filesystem
 	// distributions
+	c.OSList = c.OSListGet()
 
-	var j []OS
-	li := c.OSListGet()
-	if err != nil {
-		fmt.Println("OS listing error")
-		return
-	}
-	for _, i := range li {
-		j = append(j, OS{i, i})
-	}
-	c.OSList = j
 	return
 }
 
-func (c *Config) SaveConfig() {
+func (c *Config) PrintConfig() {
 	buf := new(bytes.Buffer)
 	err := toml.NewEncoder(buf).Encode(c)
 	fmt.Println(buf.String(), err)
 }
 
-func (c *Config) OSListGet() (list []string) {
-	list, _ = c.cache.Listing(c.Ref + "/boot/")
+func (c *Config) OSListGet() (os []operatingSystem) {
+	list, _ := c.fs.List("boot")
 	fmt.Println("OS listing ", list)
+	for _, i := range list {
+		os = append(os, operatingSystem{i, i})
+	}
 	return
 }
