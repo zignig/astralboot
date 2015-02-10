@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/BurntSushi/toml"
+	"github.com/spf13/afero"
 	"github.com/zignig/cohort/assets"
 )
 
@@ -19,6 +20,8 @@ type Config struct {
 	Interf string `toml:"interface"`
 	BaseIP net.IP
 	DBname string
+	// not exported generated config parts
+	fs     *afero.Fs
 	OSList []OS
 	cache  *assets.Cache
 }
