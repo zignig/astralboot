@@ -53,8 +53,8 @@ func GetConfig(path string, cache *assets.Cache) (c *Config) {
 	// mount file system
 	//TODO select file system from flag or config
 
-	var filesystem ROfs = &Diskfs{"./data"}
-	//var filesystem ROfs = &IPfsfs{c.Ref, c.cache}
+	//var filesystem ROfs = &Diskfs{"./data"}
+	var filesystem ROfs = &IPfsfs{c.Ref}
 	c.fs = filesystem
 	// distributions
 	c.OSList = c.OSListGet()

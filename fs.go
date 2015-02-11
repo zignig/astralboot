@@ -3,7 +3,6 @@ package main
 // file system abstraction
 
 import (
-	"github.com/zignig/cohort/assets"
 	"io"
 	"io/ioutil"
 	"os"
@@ -42,18 +41,18 @@ func (fs *Diskfs) Get(name string) (f io.ReadCloser, err error) {
 }
 
 // basic ipfs FS
-type IPfsfs struct {
-	// base ipfs reference
-	base string
-	// cache object for ipfs data
-	cache *assets.Cache
-}
+//type IPfsfs struct {
+//	// base ipfs reference
+//	base string
+//	// cache object for ipfs data
+//	cache *assets.Cache
+//}
 
-func (fs *IPfsfs) List(name string) (names []string, err error) {
-	names, err = fs.cache.Listing(fs.base + "/" + name)
-	return
-}
+//func (fs *IPfsfs) List(name string) (names []string, err error) {
+//	names, err = fs.cache.Listing(fs.base + "/" + name)
+//	return
+//}
 
-func (fs *IPfsfs) Get(name string) (f io.ReadCloser, err error) {
-	return
-}
+//func (fs *IPfsfs) Get(name string) (f io.ReadCloser, err error) {
+//	return
+//}
