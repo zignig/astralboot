@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -51,9 +50,7 @@ func HandleRead(filename string, w *io.PipeWriter) {
 func tftpServer(conf *Config) {
 	fmt.Println("start tftp")
 	localConf = conf
-	addrStr := flag.String("l", ":69", "Address to listen")
-	flag.Parse()
-	addr, e := net.ResolveUDPAddr("udp", *addrStr)
+	addr, e := net.ResolveUDPAddr("udp", ":69")
 	if e != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", e)
 		return

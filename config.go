@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"net"
 
@@ -50,11 +51,16 @@ func GetConfig(path string, cache *assets.Cache) (c *Config) {
 	if c.DBname == "" {
 		c.DBname = "./leases.db"
 	}
-	// mount file system
 	//TODO select file system from flag or config
 
-	//var filesystem ROfs = &Diskfs{"./data"}
-	var filesystem ROfs = &IPfsfs{c.Ref}
+	fileFlag := flag.Bool("l", false, "Use local file sytem")
+	var filesystem ROfs
+	flag.Parse()
+	if *fileFlag {
+		filesystem = &Diskfs{"./data"}
+	} else {
+		filesystem = &IPfsfs{c.Ref}
+	}
 	c.fs = filesystem
 	// distributions
 	c.OSList = c.OSListGet()
