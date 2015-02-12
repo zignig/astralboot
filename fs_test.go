@@ -2,14 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/zignig/cohort/assets"
 	"io/ioutil"
 	"testing"
 )
 
 func TestTiles(t *testing.T) {
-	cache := assets.NewCache()
-	config := GetConfig("config.toml", cache)
+	config := GetConfig("config.toml")
 	config.PrintConfig()
 	fmt.Println("---- LOCAL TESTS ------")
 	fmt.Println("---- File system ------")

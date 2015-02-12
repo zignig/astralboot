@@ -1,18 +1,10 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/zignig/cohort/assets"
-)
+import "fmt"
 
 func main() {
 	fmt.Println("loading config")
-
-	// cache for data files
-	cache := assets.NewCache()
-
-	conf := GetConfig("config.toml", cache)
+	conf := GetConfig("config.toml")
 	conf.PrintConfig()
 	// leases sql database
 	leases := NewStore(conf)

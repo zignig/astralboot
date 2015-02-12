@@ -7,7 +7,6 @@ import (
 	"net"
 
 	"github.com/BurntSushi/toml"
-	"github.com/zignig/cohort/assets"
 )
 
 type operatingSystem struct {
@@ -23,17 +22,15 @@ type Config struct {
 	// not exported generated config parts
 	fs     ROfs
 	OSList []operatingSystem
-	cache  *assets.Cache
 }
 
-func GetConfig(path string, cache *assets.Cache) (c *Config) {
+func GetConfig(path string) (c *Config) {
 	if _, err := toml.DecodeFile(path, &c); err != nil {
 		fmt.Println("Config file does not exists,create config")
 		fmt.Println(err)
 		return
 	}
 	// bind the cache (not exported)
-	c.cache = cache
 	// Add items from system not in config file
 	if c.Interf == "" {
 		c.Interf = "eth0"
@@ -62,6 +59,7 @@ func GetConfig(path string, cache *assets.Cache) (c *Config) {
 		filesystem = &IPfsfs{c.Ref}
 	}
 	c.fs = filesystem
+
 	// distributions
 	c.OSList = c.OSListGet()
 
