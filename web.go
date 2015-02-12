@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"text/template"
 
@@ -14,6 +15,7 @@ type WebHandler struct {
 	config    *Config
 	templates *template.Template
 	store     *Store
+	fs        ROfs
 }
 
 func NewWebServer(c *Config, l *Store) *WebHandler {
@@ -24,6 +26,8 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh.store = l
 	// bind the config
 	wh.config = c
+	// bind the config to the file store
+	wh.fs = c.fs
 
 	wh.router.GET("/ipxe/start", func(c *gin.Context) {
 		c.String(200, coreText)
@@ -53,6 +57,12 @@ func (wh *WebHandler) Images(c *gin.Context) {
 	// hand out base iamges
 	path := c.Params.ByName("path")
 	fmt.Println(path)
+	fh, err := wh.fs.Get("boot/" + path)
+	defer fh.Close()
+	if err != nil {
+		fmt.Println("web error ", err)
+	}
+	io.Copy(c.Writer, fh)
 }
 
 func (w *WebHandler) Starter(c *gin.Context) {
