@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -21,12 +23,20 @@ func HandleRead(filename string, w *io.PipeWriter) {
 	fmt.Printf("Filename : %v \n", []byte(filename))
 	var exists bool
 	d, err := localConf.fs.Get("tftp/" + filename[0:len(filename)-1])
+	defer d.Close()
 	fmt.Println(d, err)
 	if err == nil {
 		exists = true
 	}
 	if exists {
-		c, e := io.Copy(w, d)
+		// copy all the data into a buffer
+		data, err := ioutil.ReadAll(d)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Copy Error : %v\n", err)
+		}
+		buf := bytes.NewBuffer(data)
+		c, e := io.Copy(w, buf)
+		d.Close()
 		if e != nil {
 			fmt.Fprintf(os.Stderr, "Can't send %s: %v\n", filename, e)
 		} else {
