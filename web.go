@@ -31,8 +31,7 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh.router.GET("/cloud", func(c *gin.Context) {
 		c.String(200, cloudConfig)
 	})
-	wh.router.Static("/boot", "./data/boot/coreos")
-	//router.Static("/boot", "./data/boot/debian")
+	wh.router.GET("/boot/*path", wh.Images)
 
 	// templates
 	t, err := template.New("list").Parse(OsSelector)
@@ -48,6 +47,12 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 
 func (wh *WebHandler) Run() {
 	wh.router.Run(":80")
+}
+
+func (wh *WebHandler) Images(c *gin.Context) {
+	// hand out base iamges
+	path := c.Params.ByName("path")
+	fmt.Println(path)
 }
 
 func (w *WebHandler) Starter(c *gin.Context) {
