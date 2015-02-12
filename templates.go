@@ -10,6 +10,7 @@ func (c *Config) OSListGet() (os []operatingSystem) {
 	fmt.Println("OS listing ", list)
 	for _, i := range list {
 		os = append(os, operatingSystem{i, i})
+		fmt.Println(" ----- " + i + "-------")
 		subList, err := c.fs.List("boot/" + i)
 		fmt.Println(subList, err)
 	}
