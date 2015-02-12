@@ -71,12 +71,3 @@ func (c *Config) PrintConfig() {
 	err := toml.NewEncoder(buf).Encode(c)
 	fmt.Println(buf.String(), err)
 }
-
-func (c *Config) OSListGet() (os []operatingSystem) {
-	list, _ := c.fs.List("boot")
-	fmt.Println("OS listing ", list)
-	for _, i := range list {
-		os = append(os, operatingSystem{i, i})
-	}
-	return
-}

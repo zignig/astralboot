@@ -32,10 +32,7 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh.router.GET("/ipxe/start", func(c *gin.Context) {
 		c.String(200, coreText)
 	})
-	wh.router.GET("/cloud", func(c *gin.Context) {
-		c.String(200, cloudConfig)
-	})
-	wh.router.GET("/boot/*path", wh.Images)
+	wh.router.GET("/boot/:dist/*path", wh.Images)
 
 	// templates
 	t, err := template.New("list").Parse(OsSelector)
@@ -56,8 +53,9 @@ func (wh *WebHandler) Run() {
 func (wh *WebHandler) Images(c *gin.Context) {
 	// hand out base iamges
 	path := c.Params.ByName("path")
+	dist := c.Params.ByName("dist")
 	fmt.Println(path)
-	fh, err := wh.fs.Get("boot/" + path)
+	fh, err := wh.fs.Get("boot/" + dist + "/" + path)
 	defer fh.Close()
 	if err != nil {
 		fmt.Println("web error ", err)
@@ -102,6 +100,7 @@ goto top
 
 `
 
+// testing tempates
 var defaultText = `#!ipxe
 
 kernel http://192.168.2.1/boot/linux priority=critical auto=true url=http://192.168.2.1/boot/preseed
