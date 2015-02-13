@@ -4,7 +4,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -82,14 +81,12 @@ func (fs *IPfsfs) List(path string) (items []string, err error) {
 	if err != nil {
 		return items, err
 	}
-	fmt.Println("start unmarshall")
 	merr := json.Unmarshal(resp, &li)
 	if merr != nil {
-		fmt.Println("Unmarshall error ", err)
+		logger.Critical("Unmarshall error ", err)
 		return items, merr
 	}
 	for _, it := range li.Objects[0].Links {
-		//fmt.Println("listing ", i, it)
 		items = append(items, it.Name)
 	}
 	return items, nil

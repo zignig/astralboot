@@ -62,27 +62,26 @@ func (wh *WebHandler) Images(c *gin.Context) {
 	// hand out base iamges
 	path := c.Params.ByName("path")
 	dist := c.Params.ByName("dist")
-	fmt.Println(path)
+	logger.Info("Get %s ", dist)
 	fh, err := wh.fs.Get("boot/" + dist + "/" + path)
 	defer fh.Close()
 	if err != nil {
 		fmt.Println("web error ", err)
+		return
 	}
 	io.Copy(c.Writer, fh)
 }
 
 func (w *WebHandler) Starter(c *gin.Context) {
-	name := c.Params.ByName("dist")
+	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
-	fmt.Println("starter call")
-	fmt.Println(name, mac)
-	c.String(200, defaultText)
+	logger.Info("Starting os for %s on %s", dist, mac)
 	macString, err := net.ParseMAC(mac)
 	if err != nil {
 		fmt.Println("mac update error ", err)
 		return
 	}
-	w.store.UpdateActive(macString,name)
+	w.store.UpdateActive(macString, dist)
 
 }
 

@@ -28,8 +28,7 @@ type Config struct {
 
 func GetConfig(path string) (c *Config) {
 	if _, err := toml.DecodeFile(path, &c); err != nil {
-		fmt.Println("Config file does not exists,create config")
-		fmt.Println(err)
+		logger.Critical("Config file does not exists,create config")
 		return
 	}
 	// bind the cache (not exported)
@@ -39,11 +38,11 @@ func GetConfig(path string) (c *Config) {
 	}
 	interf, err := net.InterfaceByName(c.Interf)
 	if err != nil {
-		fmt.Println("Interface error ", err)
+		logger.Critical("Interface error ", err)
 	}
 	addressList, _ := interf.Addrs()
 	serverAddress, _, _ := net.ParseCIDR(addressList[0].String())
-	fmt.Println("Server Address  :", serverAddress)
+	logger.Critical("Server Address  : %s", serverAddress)
 	c.BaseIP = serverAddress
 
 	// database file name

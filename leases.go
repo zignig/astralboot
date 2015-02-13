@@ -46,6 +46,7 @@ func NewStore(c *Config) *Store {
 	return &store
 }
 
+// close the store
 func (s Store) Close() {
 	s.db.Close()
 }
@@ -81,7 +82,7 @@ func (s Store) NewLease(mac net.HardwareAddr) {
 }
 
 // update active
-func (s Store) UpdateActive(mac net.HardwareAddr,name string) bool {
+func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 	l := &Lease{}
 	fmt.Println("Update ", mac, " to active")
 	err := s.dbmap.SelectOne(&l, "select * from Lease where MAC = ?", mac.String())
@@ -129,16 +130,16 @@ func (s Store) Release(mac net.HardwareAddr) {
 }
 
 //  Find a  free address
-// 1. search for an unused
-// 2. search for inactive
+// 1. unused
+// 2. inactive
 // 3. expired
-
-func (s Store) FindFree(mac net.HardwareAddr) (ip net.IP, err error) {
-	var l Lease
-	err = s.dbmap.SelectOne(&l, "select * from Lease where MAC = ''")
+// 4. fail
+func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
+	err = s.dbmap.SelectOne(l, "select * from Lease where MAC = ''")
 	return
 }
 
+//helper functions
 func cidr(cidrNet string) {
 	ip, ipnet, err := net.ParseCIDR(cidrNet)
 	if err != nil {
