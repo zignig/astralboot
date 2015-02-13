@@ -1,14 +1,17 @@
 package main
 
-import "fmt"
-
+import (
+"fmt"
+)
 func main() {
+ 	LogSetup()
+	logger.Critical("STARTING DHCP SERVER")
 	fmt.Println("loading config")
 	conf := GetConfig("config.toml")
 	conf.PrintConfig()
 	// leases sql database
 	leases := NewStore(conf)
-	fmt.Println("starting tftp")
+	logger.Info("starting tftp")
 	go tftpServer(conf)
 	fmt.Println("start dhcp")
 	go dhcpServer(conf, leases)

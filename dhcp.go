@@ -6,7 +6,6 @@ import (
 
 	dhcp "github.com/krolaw/dhcp4"
 
-	"log"
 	"net"
 	"time"
 )
@@ -29,7 +28,7 @@ func dhcpServer(c *Config, l *Store) {
 		},
 	}
 	fmt.Println("start dhcp")
-	log.Fatal(dhcp.ListenAndServeIf(c.Interf, handler)) // Select interface on multi interface device
+	dhcp.ListenAndServeIf(c.Interf, handler)
 	fmt.Println("end dhcp")
 }
 
@@ -68,12 +67,12 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 	}
 	switch msgType {
 	case dhcp.Discover:
-		fmt.Println("Discover")
+		logger.Debug("Discover %s",p.CHAddr())
 		return dhcp.ReplyPacket(p, dhcp.Offer, h.ip, IP, h.leaseDuration,
 			h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 		return nil
 	case dhcp.Request:
-		fmt.Println("Request")
+		logger.Debug("Request %s",p.CHAddr())
 		userClass := string(options[77])
 		switch userClass {
 		case "iPXE":

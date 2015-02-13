@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
+"log"
 	"os"
 
 	tftp "github.com/pin/tftp"

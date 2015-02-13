@@ -5,7 +5,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net"
 	"sync"
 	"time"
@@ -142,7 +141,7 @@ func (s Store) FindFree(mac net.HardwareAddr) (ip net.IP, err error) {
 func cidr(cidrNet string) {
 	ip, ipnet, err := net.ParseCIDR(cidrNet)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); incIP(ip) {
 		fmt.Println(ip)
