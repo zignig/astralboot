@@ -81,7 +81,7 @@ func (s Store) NewLease(mac net.HardwareAddr) {
 }
 
 // update active
-func (s Store) UpdateActive(mac net.HardwareAddr) bool {
+func (s Store) UpdateActive(mac net.HardwareAddr,name string) bool {
 	l := &Lease{}
 	fmt.Println("Update ", mac, " to active")
 	err := s.dbmap.SelectOne(&l, "select * from Lease where MAC = ?", mac.String())
@@ -90,6 +90,7 @@ func (s Store) UpdateActive(mac net.HardwareAddr) bool {
 		return false
 	}
 	l.Active = true
+	l.Name = name
 	count, err := s.dbmap.Update(l)
 	fmt.Println(count, err)
 	return true

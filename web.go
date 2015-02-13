@@ -82,7 +82,7 @@ func (w *WebHandler) Starter(c *gin.Context) {
 		fmt.Println("mac update error ", err)
 		return
 	}
-	w.store.UpdateActive(macString)
+	w.store.UpdateActive(macString,name)
 
 }
 
