@@ -32,7 +32,6 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh.router.GET("/ipxe/start", func(c *gin.Context) {
 		c.String(200, coreText)
 	})
-	wh.router.GET("/boot/:dist/*path", wh.Images)
 
 	// templates
 	t, err := template.New("list").Parse(OsSelector)
@@ -41,8 +40,17 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 		return nil
 	}
 	wh.templates = t
+	// chose and operating system
 	wh.router.GET("/choose", wh.Lister)
+	// get the boot line for your operating system
 	wh.router.GET("/start/:dist/:mac", wh.Starter)
+	// load the kernel and file system
+	wh.router.GET("/boot/:dist/*path", wh.Images)
+	// TODO
+	// preseed / config
+	// post install
+	// finalise
+	// close
 	return wh
 }
 

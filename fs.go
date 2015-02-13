@@ -3,7 +3,7 @@ package main
 // file system abstraction
 
 import (
-	"io"
+"io"
 	"io/ioutil"
 	"os"
 )

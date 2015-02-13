@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"html/template"
 	"net"
 
 	"github.com/BurntSushi/toml"
@@ -12,6 +13,7 @@ import (
 type operatingSystem struct {
 	Name        string
 	Description string
+	Templates   *template.Template
 }
 
 type Config struct {
