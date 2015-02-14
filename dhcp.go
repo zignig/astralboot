@@ -27,9 +27,7 @@ func dhcpServer(c *Config, l *Store) {
 			dhcp.OptionDomainNameServer: []byte(serverIP), // Presuming Server is also your DNS server
 		},
 	}
-	fmt.Println("start dhcp")
 	dhcp.ListenAndServeIf(c.Interf, handler)
-	fmt.Println("end dhcp")
 }
 
 type lease struct {
@@ -67,12 +65,12 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 	}
 	switch msgType {
 	case dhcp.Discover:
-		logger.Debug("Discover %s",p.CHAddr())
+		logger.Debug("Discover %s", p.CHAddr())
 		return dhcp.ReplyPacket(p, dhcp.Offer, h.ip, IP, h.leaseDuration,
 			h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 		return nil
 	case dhcp.Request:
-		logger.Debug("Request %s",p.CHAddr())
+		logger.Debug("Request %s", p.CHAddr())
 		userClass := string(options[77])
 		switch userClass {
 		case "iPXE":

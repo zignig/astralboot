@@ -23,7 +23,7 @@ type Config struct {
 	DBname string
 	// not exported generated config parts
 	fs     ROfs
-	OSList []operatingSystem
+	OSList map[string]*operatingSystem
 }
 
 func GetConfig(path string) (c *Config) {

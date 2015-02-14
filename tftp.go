@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net"
-"log"
 	"os"
 
 	tftp "github.com/pin/tftp"
@@ -48,7 +48,6 @@ func HandleRead(filename string, w *io.PipeWriter) {
 }
 
 func tftpServer(conf *Config) {
-	fmt.Println("start tftp")
 	localConf = conf
 	addr, e := net.ResolveUDPAddr("udp", ":69")
 	if e != nil {
