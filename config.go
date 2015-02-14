@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"html/template"
 	"net"
+	"text/template"
 
 	"github.com/BurntSushi/toml"
 )

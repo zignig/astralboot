@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"io/ioutil"
+	"text/template"
+)
 
 // dealing with os layouts and templates
 
@@ -41,15 +45,22 @@ func (os operatingSystem) CheckAndLoad(c *Config) (pass bool) {
 }
 
 func (os operatingSystem) LoadTemplates(c *Config) (pass bool) {
-	templateList, err := c.fs.List("boot/" + os.Name + "/template/")
+	path := "boot/" + os.Name + "/template"
+	templateList, err := c.fs.List(path)
 	if err != nil {
 		logger.Critical("Template Load fail %s", err)
 		return false
 	}
+	newTemplates := template.New("")
 	for i, j := range templateList {
-
-		logger.Critical("#%s : %s", i, j)
+		template, err := c.fs.Get(path + "/" + j)
+		defer template.Close()
+		data, err := ioutil.ReadAll(template)
+		_, err = newTemplates.New(j).Parse(string(data))
+		fmt.Println(string(data), err)
+		logger.Critical("#%d : %s", i, j)
 	}
+	os.Templates = newTemplates
 	return true
 
 }
