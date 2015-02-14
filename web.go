@@ -43,9 +43,9 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	// chose and operating system
 	wh.router.GET("/choose", wh.Lister)
 	// get the boot line for your operating system
-	wh.router.GET("/start/:dist/:mac", wh.Starter)
+	wh.router.GET("/boot/:dist/:mac", wh.Starter)
 	// load the kernel and file system
-	wh.router.GET("/boot/:dist/*path", wh.Images)
+	wh.router.GET("/image/:dist/*path", wh.Images)
 	// TODO
 	// preseed / config
 	// post install
@@ -59,11 +59,11 @@ func (wh *WebHandler) Run() {
 }
 
 func (wh *WebHandler) Images(c *gin.Context) {
-	// hand out base iamges
-	path := c.Params.ByName("path")
+	// hand out base images
 	dist := c.Params.ByName("dist")
-	logger.Info("Get %s ", dist)
-	fh, err := wh.fs.Get("boot/" + dist + "/" + path)
+	path := c.Params.ByName("path")
+	logger.Info("Get %s at %s ", dist, path)
+	fh, err := wh.fs.Get("boot/" + dist + "/images/" + path)
 	defer fh.Close()
 	if err != nil {
 		fmt.Println("web error ", err)
@@ -82,7 +82,8 @@ func (w *WebHandler) Starter(c *gin.Context) {
 		return
 	}
 	w.store.UpdateActive(macString, dist)
-
+	logger.Critical("%v", w.config.OSList[dist])
+	err = w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start.tmpl", w.config)
 }
 
 func (w *WebHandler) Lister(c *gin.Context) {
@@ -101,7 +102,7 @@ item {{ .Name }} {{ .Description }}{{ end }}
 choose os && goto ${os}
 {{ range .OSList}}
 :{{ .Name }}
-chain http://{{ $serverIP }}/start/{{ .Name }}/${net0/mac}
+chain http://{{ $serverIP }}/boot/{{ .Name }}/${net0/mac}
 goto top
 {{ end }}
 

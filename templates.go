@@ -23,7 +23,7 @@ func (c *Config) OSListGet() (os map[string]*operatingSystem) {
 	return
 }
 
-func (os operatingSystem) CheckAndLoad(c *Config) (pass bool) {
+func (os *operatingSystem) CheckAndLoad(c *Config) (pass bool) {
 	subList, err := c.fs.List("boot/" + os.Name)
 	if err != nil {
 		logger.Error("SubList Error %s", err)
@@ -44,7 +44,7 @@ func (os operatingSystem) CheckAndLoad(c *Config) (pass bool) {
 	// returns true if the
 }
 
-func (os operatingSystem) LoadTemplates(c *Config) (pass bool) {
+func (os *operatingSystem) LoadTemplates(c *Config) (pass bool) {
 	path := "boot/" + os.Name + "/template"
 	templateList, err := c.fs.List(path)
 	if err != nil {
@@ -57,10 +57,10 @@ func (os operatingSystem) LoadTemplates(c *Config) (pass bool) {
 		defer template.Close()
 		data, err := ioutil.ReadAll(template)
 		_, err = newTemplates.New(j).Parse(string(data))
-		fmt.Println(string(data), err)
+		fmt.Println("template ", j, " -> ", string(data), err)
 		logger.Critical("#%d : %s", i, j)
 	}
-	os.Templates = newTemplates
+	os.templates = newTemplates
 	return true
 
 }

@@ -13,7 +13,7 @@ import (
 type operatingSystem struct {
 	Name        string
 	Description string
-	Templates   *template.Template
+	templates   *template.Template
 }
 
 type Config struct {
