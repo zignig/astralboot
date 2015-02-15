@@ -65,7 +65,7 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 	switch msgType {
 	case dhcp.Discover:
 		logger.Debug("Discover %s", p.CHAddr())
-		return dhcp.ReplyPacket(p, dhcp.Offer, h.config.BaseIP, IP, h.leaseDuration,
+		return dhcp.ReplyPacket(p, dhcp.Offer, h.config.BaseIP.To4(), IP, h.leaseDuration,
 			h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 	case dhcp.Request:
 		logger.Debug("Request %s", p.CHAddr())
@@ -74,19 +74,19 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		// initial hardware boot
 		case "iPXE":
 			logger.Info("iPXE request")
-			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
+			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP.To4(), net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			rp.SetSIAddr(h.ip)
 			return rp
 		// scondary iPXE boot from tftp server
 		case "skinny":
 			logger.Info("skinny request")
-			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
+			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP.To4(), net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			return rp
 		default:
 			logger.Info("normal dhcp request")
-			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
+			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP.To4(), net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			return rp
 		}
