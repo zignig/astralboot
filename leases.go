@@ -119,10 +119,16 @@ func (s Store) GetIP(mac net.HardwareAddr) (ip net.IP, err error) {
 		fmt.Printf("lease error %s", err)
 		return nil, err
 	}
-	logger.Critical("Base IP : %s", s.config.BaseIP)
 	ip = dhcp.IPAdd(s.config.BaseIP, int(l.Id))
+	logger.Critical("Lease IP : %s", ip)
 	//ip = net.IP{192, 168, 2, 4}
 	return ip, nil
+}
+
+func (s Store) GetDist(mac net.HardwareAddr) (name string, err error) {
+	var l Lease
+	err = s.dbmap.SelectOne(&l, "select dist from Lease where MAC = '' and active == True")
+	return l.Name, err
 }
 
 func (s Store) Release(mac net.HardwareAddr) {
