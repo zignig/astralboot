@@ -3,7 +3,7 @@ package main
 // file system abstraction
 
 import (
-"io"
+	"io"
 	"io/ioutil"
 	"os"
 )
@@ -36,6 +36,7 @@ func (fs *Diskfs) List(name string) (names []string, err error) {
 	return names, err
 }
 func (fs *Diskfs) Get(name string) (f io.ReadCloser, err error) {
+	logger.Debug("FS Get Path : %s", name)
 	f, err = os.Open(fs.base + sl + name)
 	return
 }

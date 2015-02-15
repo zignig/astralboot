@@ -69,7 +69,10 @@ func (wh *WebHandler) Images(c *gin.Context) {
 		fmt.Println("web error ", err)
 		return
 	}
+	c.Writer.WriteHeader(200)
 	io.Copy(c.Writer, fh)
+	c.Writer.Flush()
+
 }
 
 func (w *WebHandler) Starter(c *gin.Context) {

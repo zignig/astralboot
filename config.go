@@ -17,10 +17,12 @@ type operatingSystem struct {
 }
 
 type Config struct {
-	Ref    string `toml:"ref"`
-	Interf string `toml:"interface"`
-	BaseIP net.IP
-	DBname string
+	Ref       string `toml:"ref"`
+	Interf    string `toml:"interface"`
+	BaseIP    net.IP
+	Gateway   net.IP
+	DNSServer net.IP
+	DBname    string
 	// not exported generated config parts
 	fs     ROfs
 	OSList map[string]*operatingSystem
@@ -44,7 +46,12 @@ func GetConfig(path string) (c *Config) {
 	serverAddress, _, _ := net.ParseCIDR(addressList[0].String())
 	logger.Critical("Server Address  : %s", serverAddress)
 	c.BaseIP = serverAddress
-
+	if c.Gateway == nil {
+		c.Gateway = serverAddress
+	}
+	if c.DNSServer == nil {
+		c.DNSServer = serverAddress
+	}
 	// database file name
 	if c.DBname == "" {
 		c.DBname = "./leases.db"

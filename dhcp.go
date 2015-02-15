@@ -12,9 +12,8 @@ import (
 
 // Example using DHCP with a single network interface device
 func dhcpServer(c *Config, l *Store) {
-	serverIP := c.BaseIP
 	handler := &DHCPHandler{
-		ip:            serverIP,
+		ip:            c.BaseIP,
 		config:        c,
 		leaseDuration: 2 * time.Hour,
 		start:         net.IP{192, 168, 2, 2},
@@ -23,8 +22,8 @@ func dhcpServer(c *Config, l *Store) {
 		options: dhcp.Options{
 			dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
 			dhcp.OptionBootFileName:     []byte("undionly.kpxe"),
-			dhcp.OptionRouter:           []byte(serverIP), // Presuming Server is also your router
-			dhcp.OptionDomainNameServer: []byte(serverIP), // Presuming Server is also your DNS server
+			dhcp.OptionRouter:           []byte(c.Gateway),   // Presuming Server is also your router
+			dhcp.OptionDomainNameServer: []byte(c.DNSServer), // Presuming Server is also your DNS server
 		},
 	}
 	dhcp.ListenAndServeIf(c.Interf, handler)
@@ -58,7 +57,7 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		dhcp.OptionDomainNameServer: []byte(h.ip), // Presuming Server is also your DNS server
 	}
 	IP, err := h.leases.GetIP(p.CHAddr())
-	fmt.Println("IP for the lease is ", IP)
+	logger.Critical("IP for the lease is ", IP)
 	if err != nil {
 		fmt.Println("lease get fail ", err)
 		return nil
@@ -68,23 +67,25 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		logger.Debug("Discover %s", p.CHAddr())
 		return dhcp.ReplyPacket(p, dhcp.Offer, h.ip, IP, h.leaseDuration,
 			h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
-		return nil
 	case dhcp.Request:
 		logger.Debug("Request %s", p.CHAddr())
 		userClass := string(options[77])
 		switch userClass {
+		// initial hardware boot
 		case "iPXE":
-			fmt.Println("iPXE request")
+			logger.Info("iPXE request")
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			rp.SetSIAddr(h.ip)
 			return rp
+		// scondary iPXE boot from tftp server
 		case "skinny":
-			fmt.Println("skinny request")
+			logger.Info("skinny request")
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			return rp
 		default:
+			logger.Info("normal dhcp request")
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			return rp
@@ -96,6 +97,5 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		fmt.Println("Decline")
 		break
 	}
-
 	return nil
 }
