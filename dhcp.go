@@ -22,9 +22,8 @@ func dhcpServer(c *Config, l *Store) {
 		options: dhcp.Options{
 			dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
 			dhcp.OptionBootFileName:     []byte("undionly.kpxe"),
-			//dhcp.OptionRouter:           []byte(c.Gateway),   // Presuming Server is also your router
-			dhcp.OptionRouter:           []byte(c.Gateway.To4()),   // Presuming Server is also your router
-			dhcp.OptionDomainNameServer: []byte(c.DNSServer.To4()), // Presuming Server is also your DNS server
+			dhcp.OptionRouter:           []byte(c.Gateway.To4()),
+			dhcp.OptionDomainNameServer: []byte(c.DNSServer.To4()),
 		},
 	}
 	dhcp.ListenAndServeIf(c.Interf, handler)
@@ -54,7 +53,7 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 	skinnyOptions := dhcp.Options{
 		dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
 		dhcp.OptionBootFileName:     []byte("http://" + h.ip.String() + "/choose"),
-		dhcp.OptionRouter:           []byte(h.config.Gateway.To4()), // Presuming Server is also your router
+		dhcp.OptionRouter:           []byte(h.config.Gateway.To4()),   // Presuming Server is also your router
 		dhcp.OptionDomainNameServer: []byte(h.config.DNSServer.To4()), // Presuming Server is also your DNS server
 	}
 	IP, err := h.leases.GetIP(p.CHAddr())
@@ -78,20 +77,17 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			rp.SetSIAddr(h.ip)
-			rp.SetGIAddr(h.ip)
 			return rp
 		// scondary iPXE boot from tftp server
 		case "skinny":
 			logger.Info("skinny request")
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
-			rp.SetGIAddr(h.ip)
 			return rp
 		default:
 			logger.Info("normal dhcp request")
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
-			rp.SetGIAddr(h.ip)
 			return rp
 		}
 	case dhcp.Release:

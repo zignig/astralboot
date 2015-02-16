@@ -86,7 +86,7 @@ func (w *WebHandler) Starter(c *gin.Context) {
 	}
 	w.store.UpdateActive(macString, dist)
 	logger.Critical("%v", w.config.OSList[dist])
-	err = w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start.tmpl", w.config)
+	err = w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
 }
 
 func (w *WebHandler) Lister(c *gin.Context) {

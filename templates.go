@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"text/template"
 )
 
@@ -23,6 +24,7 @@ func (c *Config) OSListGet() (os map[string]*operatingSystem) {
 	return
 }
 
+// check and load the operating system
 func (os *operatingSystem) CheckAndLoad(c *Config) (pass bool) {
 	subList, err := c.fs.List("boot/" + os.Name)
 	if err != nil {
@@ -40,10 +42,9 @@ func (os *operatingSystem) CheckAndLoad(c *Config) (pass bool) {
 		}
 	}
 	return true
-	// grab and build all the templates for the operating systems.
-	// returns true if the
 }
 
+// load the templates for the operating system
 func (os *operatingSystem) LoadTemplates(c *Config) (pass bool) {
 	path := "boot/" + os.Name + "/template"
 	templateList, err := c.fs.List(path)
@@ -53,12 +54,15 @@ func (os *operatingSystem) LoadTemplates(c *Config) (pass bool) {
 	}
 	newTemplates := template.New("")
 	for i, j := range templateList {
-		template, err := c.fs.Get(path + "/" + j)
+		template, _ := c.fs.Get(path + "/" + j)
 		defer template.Close()
-		data, err := ioutil.ReadAll(template)
-		_, err = newTemplates.New(j).Parse(string(data))
-		fmt.Println("template ", j, " -> ", string(data), err)
-		logger.Critical("#%d : %s", i, j)
+		if strings.HasSuffix(j, ".tmpl") {
+			data, err := ioutil.ReadAll(template)
+			name := strings.TrimSuffix(j, ".tmpl")
+			_, err = newTemplates.New(name).Parse(string(data))
+			fmt.Println("template ", name, " -> ", string(data), err)
+			logger.Critical("#%d : %s", i, j)
+		}
 	}
 	os.templates = newTemplates
 	return true
