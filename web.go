@@ -62,6 +62,23 @@ func (wh *WebHandler) Run() {
 	wh.router.Run(":80")
 }
 
+// Data Construct for templating
+// includes config , lease
+// Adds  IP at top level
+type TemplateData struct {
+	Config  *Config
+	Lease   *Lease
+	IP      net.IP
+	Cluster []net.IP // used for coreos etcd cluster for now
+	BaseIP  net.IP   // the IP of this server
+}
+
+// generate template data from a mac address
+// TODO generate template data
+func (wh *WebHandler) GenTemplateData(net.HardwareAddr) (td *TemplateData) {
+	return
+}
+
 // perform action template
 func (wh *WebHandler) Action(c *gin.Context) {
 	dist := c.Params.ByName("dist")
