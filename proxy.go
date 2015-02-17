@@ -33,7 +33,7 @@ func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, err error) 
 		u.RawQuery = val.Encode()
 	}
 	//TODO need to parse and return http status
-	logger.Debug(u.String())
+	//logger.Debug(u.String())
 	resp, err = http.Get(u.String())
 	if resp.StatusCode != 200 {
 		return resp, errors.New(resp.Status)

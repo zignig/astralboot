@@ -57,9 +57,9 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		dhcp.OptionDomainNameServer: []byte(h.config.DNSServer.To4()), // Presuming Server is also your DNS server
 	}
 	IP, err := h.leases.GetIP(p.CHAddr())
-	logger.Critical("IP for the lease is ", IP)
+	logger.Critical("IP for the lease is %s", IP)
 	if err != nil {
-		fmt.Println("lease get fail ", err)
+		logger.Critical("lease get fail , %s", err)
 		return nil
 	}
 	switch msgType {
@@ -81,6 +81,15 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		// scondary iPXE boot from tftp server
 		case "skinny":
 			logger.Info("skinny request")
+			theLease, err := h.leases.GetLease(p.CHAddr())
+			logger.Debug("lease %s , %s , %s ", theLease.MAC, theLease.Distro, theLease.Active)
+			if err != nil {
+				logger.Critical("lease get fail , %s", err)
+				return nil
+			}
+			if theLease.Active == true {
+				skinnyOptions[dhcp.OptionBootFileName] = []byte("http://" + h.ip.String() + "/boot/" + theLease.Distro + "/${net0/mac}")
+			}
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP.To4(), net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			return rp

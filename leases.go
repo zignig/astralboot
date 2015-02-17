@@ -63,12 +63,14 @@ func (s Store) Query(q string) error {
 
 // Session storage
 type Lease struct {
-	Id      int64
-	MAC     string
-	Active  bool
-	Distro  string
-	Name    string
-	Created time.Time
+	Id      int64     // id of the machine
+	MAC     string    // mac address as a string
+	Active  bool      // lease is active
+	Distro  string    // linux distro
+	Name    string    // host name
+	Class   string    // sub class of the machine
+	Created time.Time // when the machine is created
+	// add more stuff
 }
 
 // new lease
@@ -91,7 +93,7 @@ func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 		return false
 	}
 	l.Active = true
-	l.Name = name
+	l.Distro = name
 	count, err := s.dbmap.Update(l)
 	fmt.Println(count, err)
 	return true
@@ -141,8 +143,9 @@ func (s Store) Release(mac net.HardwareAddr) {
 // 3. expired
 // 4. fail
 func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
-	err = s.dbmap.SelectOne(l, "select * from Lease where MAC = ''")
-	return
+	newl := &Lease{}
+	err = s.dbmap.SelectOne(&newl, "select * from Lease where MAC = ?", mac.String())
+	return newl, err
 }
 
 //helper functions

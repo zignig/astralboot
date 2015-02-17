@@ -13,8 +13,8 @@ import (
 type WebHandler struct {
 	router    *gin.Engine
 	config    *Config
-	templates *template.Template
 	store     *Store
+	templates *template.Template
 	fs        ROfs
 }
 
@@ -22,7 +22,7 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh := &WebHandler{}
 	// create the router
 	wh.router = gin.Default()
-	// bind the store
+	// bind the lease db
 	wh.store = l
 	// bind the config
 	wh.config = c
@@ -42,8 +42,10 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh.templates = t
 	// chose and operating system
 	wh.router.GET("/choose", wh.Lister)
+	wh.router.GET("/choose/:dist/:mac", wh.Chooser)
 	// get the boot line for your operating system
 	wh.router.GET("/boot/:dist/:mac", wh.Starter)
+
 	// load the kernel and file system
 	wh.router.GET("/image/:dist/*path", wh.Images)
 	// actions for each distro
@@ -85,13 +87,13 @@ func (wh *WebHandler) Images(c *gin.Context) {
 	c.Writer.WriteHeader(200)
 	io.Copy(c.Writer, fh)
 	c.Writer.Flush()
-
 }
 
-func (w *WebHandler) Starter(c *gin.Context) {
+// first boot to choose os
+func (w *WebHandler) Chooser(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
-	logger.Info("Starting os for %s on %s", dist, mac)
+	logger.Info("Chossing os for %s on %s", dist, mac)
 	macString, err := net.ParseMAC(mac)
 	if err != nil {
 		fmt.Println("mac update error ", err)
@@ -100,6 +102,14 @@ func (w *WebHandler) Starter(c *gin.Context) {
 	w.store.UpdateActive(macString, dist)
 	logger.Critical("%v", w.config.OSList[dist])
 	err = w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
+}
+
+// boot into selected os
+func (w *WebHandler) Starter(c *gin.Context) {
+	dist := c.Params.ByName("dist")
+	mac := c.Params.ByName("mac")
+	logger.Info("Starting os for %s on %s", dist, mac)
+	w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
 }
 
 func (w *WebHandler) Lister(c *gin.Context) {
@@ -118,7 +128,7 @@ item {{ .Name }} {{ .Description }}{{ end }}
 choose os && goto ${os}
 {{ range .OSList}}
 :{{ .Name }}
-chain http://{{ $serverIP }}/boot/{{ .Name }}/${net0/mac}
+chain http://{{ $serverIP }}/choose/{{ .Name }}/${net0/mac}
 goto top
 {{ end }}
 
@@ -132,6 +142,7 @@ initrd http://192.168.2.1/boot/initrd.gz
 boot
 
 `
+
 var coreText = `#!ipxe
 
 kernel http://192.168.1.1/boot/coreos_production_pxe.vmlinuz console=tty0 coreos.autologin=tty0 root=/dev/sda1 cloud-config-url=http://192.168.1.1/cloud
