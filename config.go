@@ -23,6 +23,7 @@ type Config struct {
 	Gateway   net.IP
 	Subnet    net.IP
 	DNSServer net.IP
+	Domain    string
 	DBname    string
 	// not exported generated config parts
 	fs     ROfs
@@ -58,6 +59,10 @@ func GetConfig(path string) (c *Config) {
 	// database file name
 	if c.DBname == "" {
 		c.DBname = "./leases.db"
+	}
+
+	if c.Domain == "" {
+		c.Domain = "erf"
 	}
 	//TODO select file system from flag or config
 

@@ -175,10 +175,23 @@ func (s Store) GetIP(mac net.HardwareAddr) (ip net.IP, err error) {
 	return ip, nil
 }
 
-func (s Store) GetDist(mac net.HardwareAddr) (name string, err error) {
-	var l Lease
-	err = s.dbmap.SelectOne(&l, "select dist from Lease where MAC = '' and active == True")
-	return l.Name, err
+// get a list of ips for a distro
+// coreos cluster testing
+// look into using subclass
+func (s Store) DistLease(dist string) (leaseList []*Lease) {
+	_, err := s.dbmap.Select(&leaseList, "select * from Lease where Distro = ? ", dist)
+	if err != nil {
+		logger.Debug("Lease search error %s ", err)
+		return
+	}
+	return
+}
+
+// get a lease from an IP
+func (s Store) GetFromIP(ip net.IP) (l *Lease, err error) {
+	newl := &Lease{}
+	err = s.dbmap.SelectOne(&newl, "select * from Lease where IP = ?", ip.String())
+	return newl, err
 }
 
 func (s Store) Release(mac net.HardwareAddr) {
@@ -200,9 +213,7 @@ func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
 	logger.Debug("No existing lease %s ", err)
 	// find a lease that is inactive and not reserved
 	var leaseList []Lease
-	logger.Debug("PREFAIL")
 	_, err = s.dbmap.Select(&leaseList, "select * from Lease where Active = 0 and Reserved = 0 limit 1")
-	fmt.Println(leaseList)
 	if err != nil {
 		logger.Debug("Lease search error %s ", err)
 	}

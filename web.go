@@ -29,10 +29,6 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	// bind the config to the file store
 	wh.fs = c.fs
 
-	wh.router.GET("/ipxe/start", func(c *gin.Context) {
-		c.String(200, coreText)
-	})
-
 	// templates
 	t, err := template.New("list").Parse(OsSelector)
 	if err != nil {
@@ -45,7 +41,6 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh.router.GET("/choose/:dist/:mac", wh.Chooser)
 	// get the boot line for your operating system
 	wh.router.GET("/boot/:dist/:mac", wh.Starter)
-
 	// load the kernel and file system
 	wh.router.GET("/image/:dist/*path", wh.Images)
 	// actions for each distro
@@ -66,25 +61,56 @@ func (wh *WebHandler) Run() {
 // includes config , lease
 // Adds  IP at top level
 type TemplateData struct {
+	Name    string
+	IP      net.IP
+	BaseIP  net.IP   // the IP of this server
+	Cluster []*Lease // used for coreos etcd cluster for now
 	Config  *Config
 	Lease   *Lease
-	IP      net.IP
-	Cluster []net.IP // used for coreos etcd cluster for now
-	BaseIP  net.IP   // the IP of this server
 }
 
 // generate template data from a mac address
 // TODO generate template data
-func (wh *WebHandler) GenTemplateData(net.HardwareAddr) (td *TemplateData) {
-	return
+func (wh *WebHandler) GenTemplateData(ip net.IP, dist string) *TemplateData {
+	td := &TemplateData{}
+	td.Config = wh.config
+	lease, err := wh.store.GetFromIP(ip)
+	if err != nil {
+		logger.Error("Get lease error , %s", err)
+	}
+	td.Lease = lease
+	td.Name = lease.Name
+	td.IP = lease.GetIP()
+	td.BaseIP = wh.config.BaseIP
+	td.Cluster = wh.store.DistLease(dist)
+	return td
+}
+
+// just get the client ip
+func GetIP(c *gin.Context) (ip net.IP, err error) {
+	tmp := c.ClientIP()
+	ipStr, _, err := net.SplitHostPort(tmp)
+	ip = net.ParseIP(ipStr)
+	if err != nil {
+		logger.Error("Client IP fail , %s", err)
+		return nil, err
+	}
+	return ip, nil
 }
 
 // perform action template
 func (wh *WebHandler) Action(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	action := c.Params.ByName("action")
+	client, err := GetIP(c)
+	if err != nil {
+		return
+	}
+	td := wh.GenTemplateData(client, dist)
+	logger.Info("Template Data : %v", td)
+	logger.Info("Client ip is %s", client)
 	logger.Info("Perform %s from %s ", action, dist)
-	err := wh.config.OSList[dist].templates.ExecuteTemplate(c.Writer, action, wh.config)
+	err = wh.config.OSList[dist].templates.ExecuteTemplate(c.Writer, action, td)
 	if err != nil {
 		logger.Critical("action fail %s", err)
 	}
@@ -110,7 +136,7 @@ func (wh *WebHandler) Images(c *gin.Context) {
 func (w *WebHandler) Chooser(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
-	logger.Info("Chossing os for %s on %s", dist, mac)
+	logger.Info("Choosing os for %s on %s", dist, mac)
 	macString, err := net.ParseMAC(mac)
 	if err != nil {
 		fmt.Println("mac update error ", err)
@@ -129,6 +155,7 @@ func (w *WebHandler) Starter(c *gin.Context) {
 	w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
 }
 
+// select from the os list
 func (w *WebHandler) Lister(c *gin.Context) {
 	err := w.templates.ExecuteTemplate(c.Writer, "list", w.config)
 	if err != nil {
@@ -149,30 +176,4 @@ chain http://{{ $serverIP }}/choose/{{ .Name }}/${net0/mac}
 goto top
 {{ end }}
 
-`
-
-// testing tempates
-var defaultText = `#!ipxe
-
-kernel http://192.168.2.1/boot/linux priority=critical auto=true url=http://192.168.2.1/boot/preseed
-initrd http://192.168.2.1/boot/initrd.gz
-boot
-
-`
-
-var coreText = `#!ipxe
-
-kernel http://192.168.1.1/boot/coreos_production_pxe.vmlinuz console=tty0 coreos.autologin=tty0 root=/dev/sda1 cloud-config-url=http://192.168.1.1/cloud
-initrd http://192.168.1.1/boot/coreos_production_pxe_image.cpio.gz
-boot
-
-`
-
-var cloudConfig = `#cloud-config
-coreos:
-  units:
-    - name: etcd.service
-      command: start
-    - name: fleet.service
-      command: start
 `
