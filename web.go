@@ -46,6 +46,8 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh.router.GET("/boot/:dist/:mac", wh.Starter)
 	// load the kernel and file system
 	wh.router.GET("/image/:dist/*path", wh.Images)
+	// actions for each distro
+	wh.router.GET("/action/:dist/:action", wh.Action)
 	// TODO
 	// preseed / config
 	// post install
@@ -56,6 +58,17 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 
 func (wh *WebHandler) Run() {
 	wh.router.Run(":80")
+}
+
+// perform action template
+func (wh *WebHandler) Action(c *gin.Context) {
+	dist := c.Params.ByName("dist")
+	action := c.Params.ByName("action")
+	logger.Info("Perform %s from %s ", action, dist)
+	err := wh.config.OSList[dist].templates.ExecuteTemplate(c.Writer, action, wh.config)
+	if err != nil {
+		logger.Critical("action fail %s", err)
+	}
 }
 
 func (wh *WebHandler) Images(c *gin.Context) {
