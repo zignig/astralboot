@@ -1,0 +1,11 @@
+#cloud-config
+coreos:
+  etcd:
+    discovery: https://discovery.etcd.io/8a0827eaf0c8eba8a48f129360aa22cf
+  fleet:
+    metadata: "role=services,cabinet=one"
+  units:
+    - name: etcd.service
+      command: start
+    - name: fleet.service
+      command: start
