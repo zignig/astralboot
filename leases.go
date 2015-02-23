@@ -74,8 +74,11 @@ func (s Store) Build(c *Config) {
 	// TODO
 	// need to disable
 	// - network address
+	s.Reserve(leaseList[0])
 	// - self
+	s.Reserve(&c.BaseIP)
 	// - broadcast
+	s.Reserve(leaseList[len(leaseList)-1])
 	// possibly ping check and reserve those addresses
 }
 
@@ -111,6 +114,22 @@ type Lease struct {
 // return a net.IP from the lease ( stored as string in sql )
 func (l Lease) GetIP() (ip net.IP) {
 	return net.ParseIP(l.IP)
+}
+
+// mark a lease as reserved
+func (s Store) Reserve(ip *net.IP) {
+	l := &Lease{}
+	err := s.dbmap.SelectOne(&l, "select * from Lease where IP = ?", ip.String())
+	if err != nil {
+		logger.Error("No such IP , %s", err)
+		return
+	}
+	l.Reserved = true
+	_, err = s.dbmap.Update(l)
+	if err != nil {
+		logger.Error("Lease Reserve Fail , %s", err)
+	}
+	logger.Info("Reserved IP address %s", ip)
 }
 
 // update active
