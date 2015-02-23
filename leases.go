@@ -61,6 +61,10 @@ func NewStore(c *Config) *Store {
 // build some initial tables
 func (s Store) Build(c *Config) {
 	logger.Critical("Building lease tables")
+	leaseList := NetList(c.BaseIP, c.Subnet)
+	for _, i := range leaseList {
+		fmt.Println("add a lease for ", i)
+	}
 }
 
 // close the store
@@ -78,7 +82,7 @@ func (s Store) Query(q string) error {
 	return nil
 }
 
-// Session storage
+// Leases storage
 type Lease struct {
 	Id      int64     // id of the machine
 	MAC     string    // mac address as a string
@@ -167,14 +171,14 @@ func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
 }
 
 //helper functions
-func cidr(cidrNet string) {
-	ip, ipnet, err := net.ParseCIDR(cidrNet)
-	if err != nil {
-		fmt.Println(err)
+func NetList(ip net.IP, subnet net.IP) (IPlist []*net.IP) {
+	//ip, ipnet, err := net.ParseCIDR(cidrNet)
+	mask := net.IPv4Mask(subnet[0], subnet[1], subnet[2], subnet[3])
+	ipnet := net.IPNet{ip, mask}
+	for ip := ip.Mask(mask); ipnet.Contains(ip); incIP(ip) {
+		IPlist = append(IPlist, &net.IP{ip[0], ip[1], ip[2], ip[3]})
 	}
-	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); incIP(ip) {
-		fmt.Println(ip)
-	}
+	return
 }
 
 func incIP(ip net.IP) {
