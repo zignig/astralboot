@@ -210,7 +210,7 @@ func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
 		// get one lease and update it's mac address
 		theLease := leaseList[0]
 		theLease.MAC = mac.String()
-		l.Created = time.Now()
+		theLease.Created = time.Now()
 		_, err := s.dbmap.Update(&theLease)
 		if err != nil {
 			logger.Critical("Lease Update Fail %s", err)
