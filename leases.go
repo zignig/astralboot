@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net"
+	"os"
 	"sync"
 	"time"
 
@@ -27,6 +28,13 @@ func NewStore(c *Config) *Store {
 	// create a new store
 	store := Store{}
 	store.config = c
+	// check if the file exists
+	var build bool
+	_, err := os.Stat(c.DBname)
+	if err != nil {
+		logger.Critical("error on stat , %s", err)
+		build = true
+	}
 	db, err := sql.Open("sqlite3", c.DBname)
 	store.db = db
 	if err != nil {
@@ -43,7 +51,16 @@ func NewStore(c *Config) *Store {
 	if err != nil {
 		fmt.Print(err)
 	}
+	// if it is a new file build some tables
+	if build {
+		store.Build(c)
+	}
 	return &store
+}
+
+// build some initial tables
+func (s Store) Build(c *Config) {
+	logger.Critical("Building lease tables")
 }
 
 // close the store
@@ -65,6 +82,7 @@ func (s Store) Query(q string) error {
 type Lease struct {
 	Id      int64     // id of the machine
 	MAC     string    // mac address as a string
+	IP      string    // use the SetIP and GetIP funcs
 	Active  bool      // lease is active
 	Distro  string    // linux distro
 	Name    string    // host name

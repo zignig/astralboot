@@ -16,11 +16,10 @@ func dhcpServer(c *Config, l *Store) {
 		ip:            c.BaseIP,
 		config:        c,
 		leaseDuration: 2 * time.Hour,
-		start:         net.IP{192, 168, 2, 2},
 		leaseRange:    50,
 		leases:        l,
 		options: dhcp.Options{
-			dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
+			dhcp.OptionSubnetMask:       []byte(c.Subnet.To4()),
 			dhcp.OptionBootFileName:     []byte("undionly.kpxe"),
 			dhcp.OptionRouter:           []byte(c.Gateway.To4()),
 			dhcp.OptionDomainNameServer: []byte(c.DNSServer.To4()),
@@ -51,7 +50,7 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		h.leases.NewLease(p.CHAddr())
 	}
 	skinnyOptions := dhcp.Options{
-		dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
+		dhcp.OptionSubnetMask:       []byte(h.config.Subnet.To4()),
 		dhcp.OptionBootFileName:     []byte("http://" + h.ip.String() + "/choose"),
 		dhcp.OptionRouter:           []byte(h.config.Gateway.To4()),   // Presuming Server is also your router
 		dhcp.OptionDomainNameServer: []byte(h.config.DNSServer.To4()), // Presuming Server is also your DNS server

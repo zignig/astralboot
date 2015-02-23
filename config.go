@@ -21,6 +21,7 @@ type Config struct {
 	Interf    string `toml:"interface"`
 	BaseIP    net.IP
 	Gateway   net.IP
+	Subnet    net.IP
 	DNSServer net.IP
 	DBname    string
 	// not exported generated config parts
@@ -43,9 +44,11 @@ func GetConfig(path string) (c *Config) {
 		logger.Critical("Interface error ", err)
 	}
 	addressList, _ := interf.Addrs()
-	serverAddress, _, _ := net.ParseCIDR(addressList[0].String())
+	serverAddress, ipnet, _ := net.ParseCIDR(addressList[0].String())
 	logger.Critical("Server Address  : %s", serverAddress)
 	c.BaseIP = serverAddress
+	b := ipnet.Mask
+	c.Subnet = net.IP{b[0], b[1], b[2], b[3]}
 	if c.Gateway == nil {
 		c.Gateway = serverAddress
 	}
