@@ -64,7 +64,20 @@ func (s Store) Build(c *Config) {
 	leaseList := NetList(c.BaseIP, c.Subnet)
 	for _, i := range leaseList {
 		fmt.Println("add a lease for ", i)
+		l := &Lease{}
+		l.Created = time.Now()
+		l.IP = i.String()
+		err := s.dbmap.Insert(l)
+		if err != nil {
+			logger.Error("Lease insert error %s", err)
+		}
 	}
+	// TODO
+	// need to disable
+	// - network address
+	// - self
+	// - broadcast
+	// possibly ping check and reserve those addresses
 }
 
 // close the store
