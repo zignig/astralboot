@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/coopernurse/gorp"
-	dhcp "github.com/krolaw/dhcp4"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -97,25 +96,21 @@ func (s Store) Query(q string) error {
 
 // Leases storage
 type Lease struct {
-	Id      int64     // id of the machine
-	MAC     string    // mac address as a string
-	IP      string    // use the SetIP and GetIP funcs
-	Active  bool      // lease is active
-	Distro  string    // linux distro
-	Name    string    // host name
-	Class   string    // sub class of the machine
-	Created time.Time // when the machine is created
+	Id       int64     // id of the machine
+	MAC      string    // mac address as a string
+	IP       string    // use the SetIP and GetIP funcs
+	Active   bool      // lease is active
+	Reserved bool      // lease is reserved
+	Distro   string    // linux distro
+	Name     string    // host name
+	Class    string    // sub class of the machine
+	Created  time.Time // when the machine is created
 	// add more stuff
 }
 
-// new lease
-func (s Store) NewLease(mac net.HardwareAddr) {
-	l := &Lease{}
-	l.MAC = mac.String()
-	l.Created = time.Now()
-	fmt.Println(l)
-	err := s.dbmap.Insert(l)
-	fmt.Println(err)
+// return a net.IP from the lease ( stored as string in sql )
+func (l Lease) GetIP() (ip net.IP) {
+	return net.ParseIP(l.IP)
 }
 
 // update active
@@ -156,9 +151,8 @@ func (s Store) GetIP(mac net.HardwareAddr) (ip net.IP, err error) {
 		fmt.Printf("lease error %s", err)
 		return nil, err
 	}
-	ip = dhcp.IPAdd(s.config.BaseIP, int(l.Id))
+	ip = net.ParseIP(l.IP)
 	logger.Critical("Lease IP : %s", ip)
-	//ip = net.IP{192, 168, 2, 4}
 	return ip, nil
 }
 
@@ -179,7 +173,33 @@ func (s Store) Release(mac net.HardwareAddr) {
 // 4. fail
 func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
 	newl := &Lease{}
+	// do I have a lease for this mac address
 	err = s.dbmap.SelectOne(&newl, "select * from Lease where MAC = ?", mac.String())
+	if err == nil {
+		return newl, err
+	}
+	logger.Debug("No existing lease %s ", err)
+	// find a lease that is inactive and not reserved
+	var leaseList []Lease
+	logger.Debug("PREFAIL")
+	_, err = s.dbmap.Select(&leaseList, "select * from Lease where Active = 0 and Reserved = 0 limit 1")
+	fmt.Println(leaseList)
+	if err != nil {
+		logger.Debug("Lease search error %s ", err)
+	}
+	if len(leaseList) == 1 {
+		// get one lease and update it's mac address
+		theLease := leaseList[0]
+		theLease.MAC = mac.String()
+		l.Created = time.Now()
+		_, err := s.dbmap.Update(&theLease)
+		if err != nil {
+			logger.Critical("Lease Update Fail %s", err)
+			return nil, err
+		}
+		return &theLease, nil
+	}
+
 	return newl, err
 }
 

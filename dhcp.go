@@ -44,27 +44,25 @@ type DHCPHandler struct {
 }
 
 func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options dhcp.Options) (d dhcp.Packet) {
-	//fmt.Println(p)
-	//fmt.Println(p.CHAddr())
-	if h.leases.CheckLease(p.CHAddr()) == false {
-		h.leases.NewLease(p.CHAddr())
-	}
+	// options for booting device
 	skinnyOptions := dhcp.Options{
 		dhcp.OptionSubnetMask:       []byte(h.config.Subnet.To4()),
 		dhcp.OptionBootFileName:     []byte("http://" + h.ip.String() + "/choose"),
-		dhcp.OptionRouter:           []byte(h.config.Gateway.To4()),   // Presuming Server is also your router
-		dhcp.OptionDomainNameServer: []byte(h.config.DNSServer.To4()), // Presuming Server is also your DNS server
+		dhcp.OptionRouter:           []byte(h.config.Gateway.To4()),
+		dhcp.OptionDomainNameServer: []byte(h.config.DNSServer.To4()),
 	}
-	IP, err := h.leases.GetIP(p.CHAddr())
-	logger.Critical("IP for the lease is %s", IP)
+	// get an existing lease or make a new one
+	TheLease, err := h.leases.GetLease(p.CHAddr())
+	logger.Critical("IP for the lease is %s", TheLease.IP)
 	if err != nil {
 		logger.Critical("lease get fail , %s", err)
 		return nil
 	}
+	// handle the DHCP transactions
 	switch msgType {
 	case dhcp.Discover:
 		logger.Debug("Discover %s", p.CHAddr())
-		return dhcp.ReplyPacket(p, dhcp.Offer, h.config.BaseIP.To4(), IP, h.leaseDuration,
+		return dhcp.ReplyPacket(p, dhcp.Offer, h.config.BaseIP.To4(), TheLease.GetIP(), h.leaseDuration,
 			h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 	case dhcp.Request:
 		logger.Debug("Request %s", p.CHAddr())
@@ -80,14 +78,8 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		// scondary iPXE boot from tftp server
 		case "skinny":
 			logger.Info("skinny request")
-			theLease, err := h.leases.GetLease(p.CHAddr())
-			logger.Debug("lease %s , %s , %s ", theLease.MAC, theLease.Distro, theLease.Active)
-			if err != nil {
-				logger.Critical("lease get fail , %s", err)
-				return nil
-			}
-			if theLease.Active == true {
-				skinnyOptions[dhcp.OptionBootFileName] = []byte("http://" + h.ip.String() + "/boot/" + theLease.Distro + "/${net0/mac}")
+			if TheLease.Active == true {
+				skinnyOptions[dhcp.OptionBootFileName] = []byte("http://" + h.ip.String() + "/boot/" + TheLease.Distro + "/${net0/mac}")
 			}
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP.To4(), net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
