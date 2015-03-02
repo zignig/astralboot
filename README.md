@@ -29,11 +29,12 @@ As this server has a naive dhcp server it can be dangerous to run in an office e
 
 assumes a working golang environment.
 
-go get github.com/zignig/astralboot
+```go get github.com/zignig/astralboot
 
 cd $GOPATH/src/github.com/zignig/astralboot
 
 go build
+```
 
 so the ipfs service, which is currently  in alpha , is available from http://github.com/jbenet/go-ipfs
 
@@ -47,7 +48,7 @@ This machine will probably need to have masquerading setup , this is not needed 
 
 enable forwarding 
 
-echo 1 > /proc/sys/net/ipv4/ip_forward
+`echo 1 > /proc/sys/net/ipv4/ip_forward`
 
 make it stick 
 
@@ -55,7 +56,7 @@ edit /etc/sysctl.conf  and change  net.ipv4.ip_forward = 1
 
 change the firewall 
 
-/sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+`/sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE`
 
 The test machines to be bootstrapped have one network interface attached to isolated VM network.
 
@@ -63,8 +64,9 @@ Once you have the astral boot binary built, edit the config.toml file for interf
 
 a minimal config is
 
-ref = “QmCoolIPFSHash”
+```ref = “QmCoolIPFSHash”
 interface = “eth1”
+```
 
 It is worth noting that this will need to be run as root , dhcp, tftp and http not running on the machine
 
@@ -103,7 +105,7 @@ Downloading the files can be done with the following ipfs commands
 
 In the astralboot folder : 
 
-ipfs get -o=data “hash from the config file”
+`ipfs get -o=data “hash from the config file”`
 
 then run astralboot with a -l ( l for larry ) flag an it will use the local file system.
 
