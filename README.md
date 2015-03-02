@@ -35,7 +35,7 @@ cd $GOPATH/src/github.com/zignig/astralboot
 
 go build
 
-Also the ipfs service, which is currently  in alpha , is available from http://github.com/jbenent/go-ipfs
+so the ipfs service, which is currently  in alpha , is available from http://github.com/jbenet/go-ipfs
 
 will need to be installed and running 
 
@@ -71,7 +71,7 @@ It is worth noting that this will need to be run as root , dhcp, tftp and http n
 Now you are good to go, run the astralboot binary
 
 1. It will grab some files from ipfs and load up the various operating system files.
-2. On the first run it will populate the leases.db file with empty ip addresses
+2. On the first run it will populate the leases.db file with empty ip addresses.
 3. All the services will start and it will be ready to serve.
 
 Now comes the fun bit ....
@@ -82,12 +82,12 @@ Create a virtual machine that is connected to the isolated network that astralbo
 
 The boot sequence should happen in this order
 
-1. The new virtual server should ask for an ip address
-2. Astral boot serves an address with extra information pointing back to the astral bootserver
-3. A undionly.kpxe image is served to the machine 
-4. it asks again for an ip address ( it will get the same address )
-5. A menu to select the operating system is presented on the boot line 
-6. Select the OS of you choice ( coreos , or debian at this point )
+1. The new virtual server should ask for an ip address.
+2. Astral boot serves an address with extra information pointing back to the astral bootserver.
+3. A undionly.kpxe image is served to the machine.
+4. it asks again for an ip address ( it will get the same address ).
+5. A menu to select the operating system is presented on the boot line.
+6. Select the OS of you choice ( coreos , or debian at this point ).
 7. It will boot the server.
 
 Debian will be fairly quick , coreos will take some time as the .gz file is 165 Mb , so it will take some time to download 
