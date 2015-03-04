@@ -15,7 +15,7 @@ func dhcpServer(c *Config, l *Store) {
 	handler := &DHCPHandler{
 		ip:            c.BaseIP,
 		config:        c,
-		leaseDuration: 2 * time.Hour,
+		leaseDuration: 24 * time.Hour,
 		leaseRange:    50,
 		leases:        l,
 		options: dhcp.Options{

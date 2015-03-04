@@ -135,7 +135,7 @@ func (s Store) Reserve(ip *net.IP) {
 // update active
 func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 	l := &Lease{}
-	fmt.Println("Update ", mac, " to active")
+	logger.Info("Update ", mac, " to active")
 	err := s.dbmap.SelectOne(&l, "select * from Lease where MAC = ?", mac.String())
 	if err != nil {
 		fmt.Printf("lease error %s", err)
@@ -143,8 +143,7 @@ func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 	}
 	l.Active = true
 	l.Distro = name
-	count, err := s.dbmap.Update(l)
-	fmt.Println(count, err)
+	_, err := s.dbmap.Update(l)
 	return true
 }
 
