@@ -11,7 +11,7 @@ The following services are provided
 
 1. DHCP , for ip allocation and boot information
 2. TFTP , simple file transfer
-3  HTTP , for serving images and configs
+3. HTTP , for serving images and configs
 
 It pulls its data files out of [ipfs](http://ipfs.io/), which means that they are downloaded on request and then stored locally.
 
@@ -30,7 +30,9 @@ As this server has a naive dhcp server it can be dangerous to run in an office e
 assumes a working golang environment.
 
 >go get github.com/zignig/astralboot
+
 >cd $GOPATH/src/github.com/zignig/astralboot
+
 >go build
 
 also the ipfs service, which is currently  in alpha , is available from http://github.com/jbenet/go-ipfs
@@ -61,8 +63,9 @@ Once you have the astral boot binary built, edit the config.toml file for interf
 
 a minimal config is
 
->ref = “QmCoolIPFSHash”
->interface = “eth1”
+>ref = "QmCoolIPFSHash"
+
+>interface = "eth1"
 
 
 It is worth noting that this will need to be run as root , dhcp, tftp and http not running on the machine
