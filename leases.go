@@ -143,7 +143,7 @@ func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 	}
 	l.Active = true
 	l.Distro = name
-	_, err := s.dbmap.Update(l)
+	_, err = s.dbmap.Update(l)
 	return true
 }
 
