@@ -45,6 +45,8 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh.router.GET("/image/:dist/*path", wh.Images)
 	// actions for each distro
 	wh.router.GET("/action/:dist/:action", wh.Action)
+	// rocket handlers
+	wh.RocketHandler()
 	// TODO
 	// preseed / config
 	// post install
