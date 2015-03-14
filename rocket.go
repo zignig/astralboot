@@ -3,10 +3,14 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"html/template"
+	"io"
 	"net"
 )
 
 var tmpl *template.Template
+
+// run the rocket aci out of a local fs for now
+var RocketACI ROfs
 
 // rocket template construct
 type rktTmpl struct {
@@ -23,10 +27,23 @@ func (wh *WebHandler) RocketHandler() {
 	//wh.router.GET("/rocket", wh.Discovery)
 	wh.router.GET("/rocket/:name", wh.Discovery)
 	wh.router.GET("/images/:source/:rocket/:imageName", wh.AciImage)
+
+	// bind the test file system
+	// TODO bind this to the primary config and include fs
+	fs := &Diskfs{"./rocket"}
+	RocketACI = fs
 }
 
 func (wh *WebHandler) AciImage(c *gin.Context) {
 	logger.Debug(c.Request.RequestURI)
+	AciName := c.Params.ByName("imageName")
+	logger.Debug(AciName)
+	fh, err := RocketACI.Get(AciName)
+	if err != nil {
+		logger.Debug("Rocker file error : %s", err)
+		c.AbortWithStatus(404)
+	}
+	io.Copy(c.Writer, fh)
 }
 
 // perform action template
