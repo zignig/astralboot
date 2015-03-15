@@ -83,7 +83,11 @@ func (wh *WebHandler) GenTemplateData(ip net.IP, dist string) *TemplateData {
 		logger.Error("Get lease error , %s", err)
 	}
 	td.Lease = lease
-	td.Name = lease.Name
+	if lease.Name != "" {
+		td.Name = lease.Name
+	} else {
+		td.Name = fmt.Sprintf("node%d", lease.Id)
+	}
 	td.IP = lease.GetIP()
 	td.BaseIP = wh.config.BaseIP
 	td.Cluster = wh.store.DistLease(dist)

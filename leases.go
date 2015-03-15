@@ -178,7 +178,13 @@ func (s Store) GetIP(mac net.HardwareAddr) (ip net.IP, err error) {
 // coreos cluster testing
 // look into using subclass
 func (s Store) DistLease(dist string) (leaseList []*Lease) {
-	_, err := s.dbmap.Select(&leaseList, "select * from Lease where Distro = ? ", dist)
+	var classes []string
+	_, err := s.dbmap.Select(&classes, "select distinct Class from Lease where Distro = ?", dist)
+	if err != nil {
+		logger.Debug("Class list error %s", err)
+	}
+	logger.Debug("%s", classes)
+	_, err = s.dbmap.Select(&leaseList, "select * from Lease where Distro = ? and Class = ?", dist, "etcd")
 	if err != nil {
 		logger.Debug("Lease search error %s ", err)
 		return
@@ -221,6 +227,9 @@ func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
 		theLease := leaseList[0]
 		theLease.MAC = mac.String()
 		theLease.Created = time.Now()
+		if theLease.Name == "" {
+			theLease.Name = fmt.Sprintf("node%d", theLease.Id)
+		}
 		_, err := s.dbmap.Update(&theLease)
 		if err != nil {
 			logger.Critical("Lease Update Fail %s", err)
