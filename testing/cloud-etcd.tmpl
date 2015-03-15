@@ -1,0 +1,12 @@
+#cloud-config
+
+coreos:
+  etcd:
+      name: {{ .Name }}
+      addr: {{ .IP }}:4001
+      peer-addr: {{ .IP }}:7001
+  units:
+    - name: etcd.service
+      command: start
+    - name: fleet.service
+      command: start

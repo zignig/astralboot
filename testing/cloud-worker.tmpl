@@ -1,0 +1,25 @@
+#cloud-config
+
+coreos:
+  fleet:
+    metadata: "role=worker,cabinet=two,disk=spinning"
+    etcd_servers: "{{ range $index , $element := .Cluster}}{{ if $index}},{{end}}http://{{ $element.IP }}:4001/{{ end }}"
+  units:
+    - name: etcd.service
+      mask: true
+    - name: fleet.service
+      command: start
+write_files:
+  - path: /etc/profile.d/etcdctl.sh
+    permissions: 0644
+    owner: core
+    content: |
+      # configure etcdctl to work with our etcd servers set above
+      export ETCDCTL_PEERS="{{ range $index , $element :=.Cluster}}{{ if $index}},{{end}}http://{{ $element.IP }}:4001/{{ end }}"
+  - path: /etc/profile.d/fleetctl.sh
+    permissions: 0644
+    owner: core
+    content: |
+      # configure fleetctl to work with our etcd servers set above
+      export FLEETCTL_ENDPOINT=unix:///var/run/fleet.sock
+      export FLEETCTL_EXPERIMENTAL_API=true

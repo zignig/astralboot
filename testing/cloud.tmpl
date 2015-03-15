@@ -1,11 +1,18 @@
 #cloud-config
+
 coreos:
   etcd:
-    discovery: https://discovery.etcd.io/8a0827eaf0c8eba8a48f129360aa22cf
-  fleet:
-    metadata: "role=services,cabinet=one"
+      name: node400
+      addr: {{ .IP }}:4001
+      peer-addr: {{ .IP }}:7001
   units:
     - name: etcd.service
       command: start
     - name: fleet.service
       command: start
+    - name: docker.service
+      drop-ins:
+        - name: 50-insecure-registry.conf
+          content: |
+            [Service]
+            Environment=DOCKER_OPTS='--insecure-registry="{{ .BaseIP }}/24"'
