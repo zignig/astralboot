@@ -45,6 +45,8 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh.router.GET("/image/:dist/*path", wh.Images)
 	// actions for each distro
 	wh.router.GET("/action/:dist/:action", wh.Action)
+	// configs for each distro
+	wh.router.GET("/config/:dist/:action", wh.Config)
 	// rocket handlers
 	wh.RocketHandler()
 	// TODO
@@ -98,6 +100,29 @@ func GetIP(c *gin.Context) (ip net.IP, err error) {
 		return nil, err
 	}
 	return ip, nil
+}
+
+// perform config template
+func (wh *WebHandler) Config(c *gin.Context) {
+	dist := c.Params.ByName("dist")
+	action := c.Params.ByName("action")
+	client, err := GetIP(c)
+	if err != nil {
+		return
+	}
+	td := wh.GenTemplateData(client, dist)
+	logger.Info("Template Data : %v", td)
+	logger.Info("Client ip is %s", client)
+	logger.Info("Perform %s from %s ", action, dist)
+	logger.Info("Lease Info ", td.Lease)
+	if td.Lease.Class != "" {
+		logger.Info("Class %s", td.Lease.Class)
+		action = c.Params.ByName("action") + "-" + td.Lease.Class
+	}
+	err = wh.config.OSList[dist].templates.ExecuteTemplate(c.Writer, action, td)
+	if err != nil {
+		logger.Critical("action fail %s", err)
+	}
 }
 
 // perform action template
