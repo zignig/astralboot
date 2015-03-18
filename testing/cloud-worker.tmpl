@@ -2,7 +2,7 @@
 
 coreos:
   fleet:
-    metadata: "role=worker,cabinet=two,disk=spinning"
+    metadata: "role={{ .Lease.Class }}"
     etcd_servers: "{{ range $index , $element := .Cluster}}{{ if $index}},{{end}}http://{{ $element.IP }}:4001/{{ end }}"
   units:
     - name: etcd.service
@@ -10,6 +10,13 @@ coreos:
     - name: fleet.service
       command: start
 write_files:
+  - path: /etc/environment
+    permissions: 0644
+    owner: core
+    content: |
+      # configure etcdctl to work with our etcd servers set above
+      ETCDCTL_PEERS={{ range $index , $element :=.Cluster}}{{ if $index}},{{end}}http://{{ $element.IP }}:4001/{{ end }}
+      HOST_IP={{.IP}}
   - path: /etc/profile.d/etcdctl.sh
     permissions: 0644
     owner: core
