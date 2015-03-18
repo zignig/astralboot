@@ -13,7 +13,7 @@ import (
 func (c *Config) OSListGet() (os map[string]*operatingSystem) {
 	os = make(map[string]*operatingSystem)
 	list, _ := c.fs.List("boot")
-	fmt.Println("OS listing ", list)
+	logger.Info("OS listing ", list)
 	for _, i := range list {
 		logger.Info(" ----- " + i + "-------")
 		tmpOS := &operatingSystem{Name: i, Description: i}
@@ -60,7 +60,9 @@ func (os *operatingSystem) LoadTemplates(c *Config) (pass bool) {
 			data, err := ioutil.ReadAll(template)
 			name := strings.TrimSuffix(j, ".tmpl")
 			_, err = newTemplates.New(name).Parse(string(data))
-			fmt.Println("template ", name, " -> ", string(data), err)
+			if err != nil {
+				fmt.Println("template ", name, " -> ", string(data), err)
+			}
 			logger.Critical("#%d : %s", i, j)
 		}
 	}

@@ -208,3 +208,18 @@ goto top
 {{ end }}
 
 `
+
+// class selectore for image class
+var ClassSelector = `#!ipxe
+
+:top{{ $serverIP := .BaseIP }}
+menu Choose an operating sytem {{ range .OSList}}
+item {{ .Name }} {{ .Description }}{{ end }}
+choose os && goto ${os}
+{{ range .OSList}}
+:{{ .Name }}
+chain http://{{ $serverIP }}/choose/{{ .Name }}/${net0/mac}
+goto top
+{{ end }}
+
+`
