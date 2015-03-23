@@ -13,6 +13,8 @@ import (
 type operatingSystem struct {
 	Name        string
 	Description string
+	HasClasses  bool
+	Classes     []string
 	templates   *template.Template
 }
 

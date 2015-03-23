@@ -32,13 +32,14 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	// templates
 	t, err := template.New("list").Parse(OsSelector)
 	if err != nil {
-		fmt.Println("template error")
+		fmt.Println("template error", err)
 		return nil
 	}
 	wh.templates = t
 	// chose and operating system
 	wh.router.GET("/choose", wh.Lister)
 	wh.router.GET("/choose/:dist/:mac", wh.Chooser)
+	wh.router.GET("/class/:dist/:mac", wh.ClassChooser)
 	// get the boot line for your operating system
 	wh.router.GET("/boot/:dist/:mac", wh.Starter)
 	// load the kernel and file system
@@ -178,6 +179,21 @@ func (w *WebHandler) Chooser(c *gin.Context) {
 	err = w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
 }
 
+// first choose a class for the given os
+func (w *WebHandler) ClassChooser(c *gin.Context) {
+	dist := c.Params.ByName("dist")
+	mac := c.Params.ByName("mac")
+	logger.Info("Choosing os for %s on %s", dist, mac)
+	macString, err := net.ParseMAC(mac)
+	if err != nil {
+		fmt.Println("mac update error ", err)
+		return
+	}
+	w.store.UpdateActive(macString, dist)
+	logger.Critical("%v", w.config.OSList[dist])
+	err = w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
+}
+
 // boot into selected os
 func (w *WebHandler) Starter(c *gin.Context) {
 	dist := c.Params.ByName("dist")
@@ -199,11 +215,11 @@ var OsSelector = `#!ipxe
 
 :top{{ $serverIP := .BaseIP }}
 menu Choose an operating sytem {{ range .OSList}}
-item {{ .Name }} {{ .Description }}{{ end }}
+item {{ .Name }} {{ .Description }} {{ if .HasClasses }}>{{ end }}{{ end }}
 choose os && goto ${os}
 {{ range .OSList}}
 :{{ .Name }}
-chain http://{{ $serverIP }}/choose/{{ .Name }}/${net0/mac}
+chain http://{{ $serverIP}}/{{ if .HasClasses }}class{{ else }}choose{{ end }}/{{.Name}}/${net0/mac}
 goto top
 {{ end }}
 

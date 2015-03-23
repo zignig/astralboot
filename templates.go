@@ -52,6 +52,7 @@ func (os *operatingSystem) LoadTemplates(c *Config) (pass bool) {
 		logger.Critical("Template Load fail %s", err)
 		return false
 	}
+	//load all the templates for the operating sytem
 	newTemplates := template.New("")
 	for i, j := range templateList {
 		template, _ := c.fs.Get(path + "/" + j)
@@ -67,6 +68,17 @@ func (os *operatingSystem) LoadTemplates(c *Config) (pass bool) {
 		}
 	}
 	os.templates = newTemplates
+	// check for operating system classes
+	classPath := "boot/" + os.Name + "/" + "classes.toml"
+	classFile, err := c.fs.Get(classPath)
+	if err != nil {
+		logger.Critical("Class List fail, %s", err)
+		// still returns true , so the OS is added
+		return true
+	}
+	// TODO pass class file
+	logger.Debug("Class File : %s", classFile)
+	os.HasClasses = true
 	return true
 
 }
