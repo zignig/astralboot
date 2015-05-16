@@ -54,7 +54,7 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 	}
 	// get an existing lease or make a new one
 	TheLease, err := h.leases.GetLease(p.CHAddr())
-	logger.Info("IP for the lease is %s", TheLease.IP)
+	logger.Info("%s has an ip of %s ", TheLease.MAC, TheLease.IP)
 	if err != nil {
 		logger.Critical("lease get fail , %s", err)
 		return nil
