@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// struct for dhcp store store
+// struct for dhcp data store
 type Store struct {
 	DBname string
 	sessMu sync.Mutex
@@ -100,8 +100,6 @@ func Load(name string) (ll LeaseList) {
 }
 
 func (ll LeaseList) Save(name string) {
-	logger.Critical("Leases not saved")
-	// TODO write file saver
 	enc, err := json.MarshalIndent(ll, "", " ")
 	if err != nil {
 		logger.Critical("Lease Marshal fail , %v", err)
@@ -110,6 +108,7 @@ func (ll LeaseList) Save(name string) {
 	if err != nil {
 		logger.Critical("Lease save fail , %v", err)
 	}
+	logger.Info("Leases Saved")
 }
 
 // store functions
@@ -130,7 +129,6 @@ func NewStore(c *Config) *Store {
 		store.Build(c)
 	}
 	store.leases = Load(c.DBname)
-	fmt.Println(store)
 	return &store
 }
 
@@ -146,7 +144,6 @@ func (s Store) Build(c *Config) {
 		l.Created = time.Now()
 		l.IP = i.String()
 		ll.Leases = append(ll.Leases, l)
-		logger.Debug("TODO insert %v into lease list ", l)
 	}
 	s.leases = ll
 	// TODO
@@ -195,7 +192,7 @@ func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 		fmt.Printf("lease error %s", err)
 		return false
 	}
-	//l.Active = true
+	l.Active = true
 	l.Distro = name
 	s.leases.Save(s.DBname)
 	return true
@@ -278,10 +275,8 @@ func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
 	} else {
 		// get one lease and update it's mac address
 		logger.Debug("found lease, updating")
-		fmt.Println(l)
 		l.MAC = mac.String()
 		l.Created = time.Now()
-		l.Active = true
 		if l.Name == "" {
 			l.Name = fmt.Sprintf("node%d", l.Id)
 		}
