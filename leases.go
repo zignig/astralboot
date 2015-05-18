@@ -41,15 +41,6 @@ type Lease struct {
 }
 
 // Lease List functions
-func LoadLeaseList(name string) (l *LeaseList, err error) {
-	l = &LeaseList{}
-	//f, err := os.Open(name)
-
-	if err != nil {
-		logger.Debug("lease error, %v", err)
-	}
-	return
-}
 
 func (ll LeaseList) IP(ip net.IP) (l *Lease, err error) {
 	for _, i := range ll.Leases {
@@ -61,18 +52,23 @@ func (ll LeaseList) IP(ip net.IP) (l *Lease, err error) {
 }
 
 func (ll LeaseList) Mac(mac net.HardwareAddr) (l *Lease, err error) {
-	for i := range ll.Leases {
-		fmt.Println(i)
+	for _, i := range ll.Leases {
+		if i.MAC == mac.String() {
+			return i, nil
+		}
 	}
-	return l, err
+	return l, errors.New("no lease for mac")
 }
 
 func (ll LeaseList) Free(mac net.HardwareAddr) (l *Lease, err error) {
+	logger.Critical("%v leases", len(ll.Leases))
 	for _, i := range ll.Leases {
+		logger.Debug("%v", i)
 		if (i.Active == false) && (i.Reserved == false) {
-			return l, err
+			return i, err
 		}
 	}
+	logger.Critical("No leases available")
 	return nil, errors.New("No available leases")
 }
 
@@ -89,10 +85,24 @@ func (ll LeaseList) GetClasses() (classes []string, err error) {
 	return
 }
 
+func Load(name string) (ll LeaseList) {
+	content, err := ioutil.ReadFile(name)
+	if err != nil {
+		logger.Critical("Load Fail : %v", err)
+	}
+	ll = LeaseList{}
+	err = json.Unmarshal(content, &ll)
+	if err != nil {
+		logger.Critical("Lease Marshall fail , %v", err)
+	}
+	logger.Info("%v leases in file", len(ll.Leases))
+	return ll
+}
+
 func (ll LeaseList) Save(name string) {
 	logger.Critical("Leases not saved")
 	// TODO write file saver
-	enc, err := json.MarshalIndent(ll.Leases, "", " ")
+	enc, err := json.MarshalIndent(ll, "", " ")
 	if err != nil {
 		logger.Critical("Lease Marshal fail , %v", err)
 	}
@@ -119,6 +129,8 @@ func NewStore(c *Config) *Store {
 	if build {
 		store.Build(c)
 	}
+	store.leases = Load(c.DBname)
+	fmt.Println(store)
 	return &store
 }
 
@@ -145,9 +157,7 @@ func (s Store) Build(c *Config) {
 	s.Reserve(c.BaseIP)
 	// - broadcast
 	s.Reserve(leaseList[len(leaseList)-1])
-	// possibly ping check and reserve those addresses
-	enc, err := json.MarshalIndent(s.leases, "", " ")
-	fmt.Println(string(enc), err)
+	s.leases.Save(s.DBname)
 }
 
 // close the store
@@ -185,7 +195,7 @@ func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 		fmt.Printf("lease error %s", err)
 		return false
 	}
-	l.Active = true
+	//l.Active = true
 	l.Distro = name
 	s.leases.Save(s.DBname)
 	return true
@@ -255,6 +265,7 @@ func (s Store) Release(mac net.HardwareAddr) {
 func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
 	newl := &Lease{}
 	// do I have a lease for this mac address
+	logger.Debug("Find Lease for %v", mac)
 	newl, err = s.leases.Mac(mac)
 	if err == nil {
 		return newl, err
@@ -266,16 +277,16 @@ func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
 		logger.Debug("Lease search error %s ", err)
 	} else {
 		// get one lease and update it's mac address
+		logger.Debug("found lease, updating")
+		fmt.Println(l)
 		l.MAC = mac.String()
 		l.Created = time.Now()
+		l.Active = true
 		if l.Name == "" {
 			l.Name = fmt.Sprintf("node%d", l.Id)
 		}
+		logger.Debug("updated lease")
 		s.leases.Save(s.DBname)
-		if err != nil {
-			logger.Critical("Lease Update Fail %s", err)
-			return nil, err
-		}
 		return l, nil
 	}
 
