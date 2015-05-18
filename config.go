@@ -60,7 +60,7 @@ func GetConfig(path string) (c *Config) {
 	}
 	// database file name
 	if c.DBname == "" {
-		c.DBname = "./leases.db"
+		c.DBname = "./machines.json"
 	}
 
 	if c.Domain == "" {

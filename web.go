@@ -68,8 +68,8 @@ func (wh *WebHandler) Run() {
 type TemplateData struct {
 	Name    string
 	IP      net.IP
-	BaseIP  net.IP   // the IP of this server
-	Cluster []*Lease // used for coreos etcd cluster for now
+	BaseIP  net.IP    // the IP of this server
+	Cluster LeaseList // used for coreos etcd cluster for now
 	Config  *Config
 	Lease   *Lease
 }
