@@ -3,26 +3,59 @@ package main
 // lease database for dhcp server
 
 import (
-	"database/sql"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"sync"
 	"time"
-
-	"github.com/coopernurse/gorp"
-	_ "github.com/mattn/go-sqlite3"
 )
 
-// struct for thing store
+// struct for dhcp store store
 type Store struct {
-	db     *sql.DB
-	dbmap  *gorp.DbMap
 	sessMu sync.Mutex
-	leases map[string]*Lease
+	leases LeaseList
 	config *Config
 }
 
+// Leases stored on disk as JSON file
+type LeaseList struct {
+	leases []Lease
+}
+
+// Leases storage
+type Lease struct {
+	Id       int64     // id of the machine
+	MAC      string    // mac address as a string
+	IP       string    // use the SetIP and GetIP funcs
+	Active   bool      // lease is active
+	Reserved bool      // lease is reserved
+	Distro   string    // linux distro
+	Name     string    // host name
+	Class    string    // sub class of the machine
+	Created  time.Time // when the machine is created
+	// add more stuff
+}
+
+// Lease List functions
+func LoadLeaseList(name string) (l *LeaseList, err error) {
+	l = &LeaseList{}
+	f, err := os.Open(name)
+
+	if err != nil {
+		logger.Debug("lease error, %v", err)
+	}
+	return
+}
+
+func (ll LeaseList) FindMac(mac string) (l *Lease, err error) {
+	for i := range ll.leases {
+		fmt.Println(i)
+	}
+	return l, err
+}
+
+// store functions
 func NewStore(c *Config) *Store {
 	// create a new store
 	store := Store{}
@@ -33,22 +66,6 @@ func NewStore(c *Config) *Store {
 	if err != nil {
 		logger.Critical("error on stat , %s", err)
 		build = true
-	}
-	db, err := sql.Open("sqlite3", c.DBname)
-	store.db = db
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
-	store.dbmap = dbmap
-
-	// map the objects
-	dbmap.AddTable(Lease{}).SetKeys(true, "Id")
-
-	err = dbmap.CreateTablesIfNotExists()
-	if err != nil {
-		fmt.Print(err)
 	}
 	// if it is a new file build some tables
 	if build {
@@ -66,10 +83,7 @@ func (s Store) Build(c *Config) {
 		l := &Lease{}
 		l.Created = time.Now()
 		l.IP = i.String()
-		err := s.dbmap.Insert(l)
-		if err != nil {
-			logger.Error("Lease insert error %s", err)
-		}
+		logger.Debug("%v", l)
 	}
 	// TODO
 	// need to disable
@@ -84,31 +98,7 @@ func (s Store) Build(c *Config) {
 
 // close the store
 func (s Store) Close() {
-	s.db.Close()
-}
-
-// access methods
-func (s Store) Query(q string) error {
-	rows, err := s.db.Query(q)
-	if err != nil {
-		return err
-	}
-	fmt.Println(rows)
-	return nil
-}
-
-// Leases storage
-type Lease struct {
-	Id       int64     // id of the machine
-	MAC      string    // mac address as a string
-	IP       string    // use the SetIP and GetIP funcs
-	Active   bool      // lease is active
-	Reserved bool      // lease is reserved
-	Distro   string    // linux distro
-	Name     string    // host name
-	Class    string    // sub class of the machine
-	Created  time.Time // when the machine is created
-	// add more stuff
+	// TODO  write and close json file
 }
 
 // return a net.IP from the lease ( stored as string in sql )
