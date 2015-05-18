@@ -74,6 +74,10 @@ func (ll LeaseList) Free(mac net.HardwareAddr) (l *Lease, err error) {
 
 func (ll LeaseList) GetDist(dist string) (le LeaseList, err error) {
 	// TODO get dist list
+	//	distList := make(map[string]int)
+	for _, i := range ll.Leases {
+		logger.Critical("%v", i.Distro)
+	}
 	return
 }
 

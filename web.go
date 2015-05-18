@@ -119,7 +119,7 @@ func (wh *WebHandler) Config(c *gin.Context) {
 	logger.Info("Template Data : %v", td)
 	logger.Info("Client ip is %s", client)
 	logger.Info("Perform %s from %s ", action, dist)
-	logger.Info("Lease Info ", td.Lease)
+	//	logger.Info("Lease Info ", td.Lease)
 	if td.Lease.Class != "" {
 		logger.Info("Class %s", td.Lease.Class)
 		action = c.Params.ByName("action") + "-" + td.Lease.Class
