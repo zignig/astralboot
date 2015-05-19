@@ -78,6 +78,7 @@ func (ll LeaseList) GetClasses() (classes []string, err error) {
 	return
 }
 
+// load the leases from the json file on disk
 func Load(name string) (ll LeaseList) {
 	content, err := ioutil.ReadFile(name)
 	if err != nil {
@@ -92,6 +93,8 @@ func Load(name string) (ll LeaseList) {
 	return ll
 }
 
+// Save the leases to disk
+// TODO needs locking , perhaps a channel system for linear updates
 func (ll LeaseList) Save(name string) {
 	enc, err := json.MarshalIndent(ll, "", " ")
 	if err != nil {

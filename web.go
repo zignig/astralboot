@@ -75,7 +75,8 @@ type TemplateData struct {
 }
 
 // generate template data from a mac address
-// TODO generate template data
+// TODO split this into a dictionary of Leaselist
+// and keep a cache so it is not regenerated every request
 func (wh *WebHandler) GenTemplateData(ip net.IP, dist string) *TemplateData {
 	td := &TemplateData{}
 	td.Config = wh.config
@@ -108,6 +109,9 @@ func GetIP(c *gin.Context) (ip net.IP, err error) {
 }
 
 // perform config template
+// config requests  name and appends the device class
+// so you can have a template per server class
+
 func (wh *WebHandler) Config(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	action := c.Params.ByName("action")
@@ -148,8 +152,8 @@ func (wh *WebHandler) Action(c *gin.Context) {
 	}
 }
 
+// hands back boot images and kernels
 func (wh *WebHandler) Images(c *gin.Context) {
-	// hand out base images
 	dist := c.Params.ByName("dist")
 	path := c.Params.ByName("path")
 	logger.Info("Get %s at %s ", dist, path)
@@ -165,6 +169,8 @@ func (wh *WebHandler) Images(c *gin.Context) {
 }
 
 // first boot to choose os
+// generates selection menu for os choice
+// TODO , make this into a generic layered menu
 func (w *WebHandler) Chooser(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
@@ -180,6 +186,8 @@ func (w *WebHandler) Chooser(c *gin.Context) {
 }
 
 // first choose a class for the given os
+// TODO broken at the moment
+// need to select th sub class from a menu
 func (w *WebHandler) ClassChooser(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
@@ -236,6 +244,4 @@ choose os && goto ${os}
 :{{ .Name }}
 chain http://{{ $serverIP }}/choose/{{ .Name }}/${net0/mac}
 goto top
-{{ end }}
-
 `
