@@ -135,14 +135,8 @@ func (s Store) GetIP(mac net.HardwareAddr) (ip net.IP, err error) {
 // get a list of ips for a distro
 // coreos cluster testing
 // look into using subclass
-func (s Store) DistLease(dist string) (ll LeaseList) {
-	var classes []string
-	classes, err := s.leases.GetClasses()
-	if err != nil {
-		logger.Debug("Class list error %s", err)
-	}
-	logger.Debug("%s", classes)
-	ll, err = s.leases.GetDist("etcd")
+func (s Store) DistLease(dist string) (ll map[string]*LeaseList) {
+	ll, err := s.leases.GetDist(dist)
 	if err != nil {
 		logger.Debug("Lease search error %s ", err)
 		return

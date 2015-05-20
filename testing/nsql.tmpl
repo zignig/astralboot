@@ -1,0 +1,11 @@
+[Unit]
+Description=Nsq lookup 
+
+[Service]
+TimeoutStartSec=0
+ExecStart=wget -O /home/core/nsqd {{.BaseIP}}/images/test/binary/nsqd
+ExecStart=chmod u+x /home/core/nsqd
+ExecStart=/home/core/nsqd
+
+[X-Fleet]
+Global=true

@@ -3,9 +3,9 @@
 coreos:
   fleet:
     metadata: "role={{ .Lease.Class }}"
-    etcd_servers: "{{ range $index , $element := .Cluster}}{{ if $index}},{{end}}http://{{ $element.IP }}:4001/{{ end }}"
+    etcd_servers: "{{ range $index , $element := .Cluster.etcd.Leases}}{{ if $index}},{{end}}http://{{ $element.IP }}:2379/{{ end }}"
   units:
-    - name: etcd.service
+    - name: etcd2.service
       mask: true
     - name: fleet.service
       command: start
@@ -15,14 +15,14 @@ write_files:
     owner: core
     content: |
       # configure etcdctl to work with our etcd servers set above
-      ETCDCTL_PEERS={{ range $index , $element :=.Cluster}}{{ if $index}},{{end}}http://{{ $element.IP }}:4001/{{ end }}
+      ETCDCTL_PEERS={{ range $index , $element :=.Cluster.etcd.Leases}}{{ if $index}},{{end}}http://{{ $element.IP }}:2379/{{ end }}
       HOST_IP={{.IP}}
   - path: /etc/profile.d/etcdctl.sh
     permissions: 0644
     owner: core
     content: |
       # configure etcdctl to work with our etcd servers set above
-      export ETCDCTL_PEERS="{{ range $index , $element :=.Cluster}}{{ if $index}},{{end}}http://{{ $element.IP }}:4001/{{ end }}"
+      export ETCDCTL_PEERS="{{ range $index , $element :=.Cluster.etcd.Leases}}{{ if $index}},{{end}}http://{{ $element.IP }}:2379/{{ end }}"
   - path: /etc/profile.d/fleetctl.sh
     permissions: 0644
     owner: core

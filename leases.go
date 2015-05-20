@@ -61,11 +61,24 @@ func (ll LeaseList) Free(mac net.HardwareAddr) (l *Lease, err error) {
 	return nil, errors.New("No available leases")
 }
 
-func (ll LeaseList) GetDist(dist string) (le LeaseList, err error) {
+func (ll *LeaseList) Append(l *Lease) {
+	ll.Leases = append(ll.Leases, l)
+	logger.Debug("appender %v", ll)
+}
+
+// Returns a map of leaselist for classes of a given disto
+func (ll LeaseList) GetDist(dist string) (le map[string]*LeaseList, err error) {
 	// TODO get dist list
-	//	distList := make(map[string]int)
+	le = make(map[string]*LeaseList)
 	for _, i := range ll.Leases {
-		logger.Critical("%v", i.Distro)
+		if i.Distro == dist {
+			_, ok := le[i.Class]
+			if ok == false {
+				le[i.Class] = &LeaseList{}
+			}
+			le[i.Class].Append(i)
+			logger.Critical("%v", le)
+		}
 	}
 	return
 }

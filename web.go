@@ -68,15 +68,14 @@ func (wh *WebHandler) Run() {
 type TemplateData struct {
 	Name    string
 	IP      net.IP
-	BaseIP  net.IP    // the IP of this server
-	Cluster LeaseList // used for coreos etcd cluster for now
+	BaseIP  net.IP                // the IP of this server
+	Cluster map[string]*LeaseList // used for coreos etcd cluster for now
 	Config  *Config
 	Lease   *Lease
 }
 
 // generate template data from a mac address
-// TODO split this into a dictionary of Leaselist
-// and keep a cache so it is not regenerated every request
+// TODO and keep a cache so it is not regenerated every request
 func (wh *WebHandler) GenTemplateData(ip net.IP, dist string) *TemplateData {
 	td := &TemplateData{}
 	td.Config = wh.config
