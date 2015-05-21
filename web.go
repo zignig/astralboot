@@ -119,8 +119,8 @@ func (wh *WebHandler) Config(c *gin.Context) {
 		return
 	}
 	td := wh.GenTemplateData(client, dist)
-	logger.Info("Template Data : %v", td)
-	logger.Info("Client ip is %s", client)
+	//logger.Info("Template Data : %v", td)
+	//logger.Info("Client ip is %s", client)
 	logger.Info("Perform %s from %s ", action, dist)
 	//	logger.Info("Lease Info ", td.Lease)
 	if td.Lease.Class != "" {

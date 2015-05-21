@@ -63,7 +63,7 @@ func (ll LeaseList) Free(mac net.HardwareAddr) (l *Lease, err error) {
 
 func (ll *LeaseList) Append(l *Lease) {
 	ll.Leases = append(ll.Leases, l)
-	logger.Debug("appender %v", ll)
+	//logger.Debug("appender %v", ll)
 }
 
 // Returns a map of leaselist for classes of a given disto
@@ -77,7 +77,7 @@ func (ll LeaseList) GetDist(dist string) (le map[string]*LeaseList, err error) {
 				le[i.Class] = &LeaseList{}
 			}
 			le[i.Class].Append(i)
-			logger.Critical("%v", le)
+			//logger.Critical("%v", le)
 		}
 	}
 	return

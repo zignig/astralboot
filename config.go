@@ -19,8 +19,10 @@ type operatingSystem struct {
 }
 
 type Config struct {
-	Ref       string `toml:"ref"`
-	Interf    string `toml:"interface"`
+	Ref    string `toml:"ref"`
+	Interf string `toml:"interface"`
+	// switchable services
+	Spawn     bool
 	BaseIP    net.IP
 	Gateway   net.IP
 	Subnet    net.IP
