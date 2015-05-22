@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -19,6 +20,10 @@ type rktTmpl struct {
 	BaseIP  net.IP
 	AciName string
 }
+
+// BIG TODO
+// handle unit file parsing , indexing and serving
+// for spawn monster.
 
 // spawn api construct
 type SpawnAPI struct {
@@ -48,18 +53,21 @@ func (sa *SpawnAPI) ScanUnits() {
 	NewTemplates := template.New("")
 	sa.units = make(map[string]string)
 	for _, i := range unitlist {
-		logger.Debug("unit: %s", i)
-		template, err := sa.fs.Get("units/" + i)
-		defer template.Close()
-		if err != nil {
-			logger.Critical("template error , %s", err)
+		if strings.HasSuffix(i, ".service") {
+			shortName := strings.TrimSuffix(i, ".service")
+			logger.Debug("unit: %s", i)
+			template, err := sa.fs.Get("units/" + i)
+			defer template.Close()
+			if err != nil {
+				logger.Critical("template error , %s", err)
+			}
+			data, err := ioutil.ReadAll(template)
+			_, err = NewTemplates.New(shortName).Parse(string(data))
+			if err != nil {
+				logger.Critical("template parse error , %s", err)
+			}
+			sa.units[shortName] = "active" // TODO put unit info in here
 		}
-		data, err := ioutil.ReadAll(template)
-		_, err = NewTemplates.New(i).Parse(string(data))
-		if err != nil {
-			logger.Critical("template parse error , %s", err)
-		}
-		sa.units[i] = "active" // TODO put unit info in here
 	}
 	sa.templates = NewTemplates
 	logger.Debug("%s", sa.units)
@@ -72,9 +80,6 @@ func (wh *WebHandler) RocketHandler() {
 	//fs := &IPfsfs{"QmSeHSnaGkgyKc5a5WiWLuqAAa7socn2DgoSpSmgJPZAy8"}
 	RocketACI = fs
 
-	// create the spawn api
-	TheSpawn = NewSpawnAPI(fs)
-
 	t, err := template.New("rocket").Parse(MetaDiscovery)
 	tmpl = t
 	if err != nil {
@@ -84,14 +89,13 @@ func (wh *WebHandler) RocketHandler() {
 	wh.router.GET("/rocket/:name", wh.Discovery)
 	wh.router.GET("/images/:source/:rocket/:imageName", wh.AciImage)
 	// access for spawn
-	wh.router.GET("/spawn/list", wh.UnitList)
-	wh.router.GET("/spawn/unit/:name", wh.GetUnit)
-
+	if wh.config.Spawn {
+		// create the spawn api
+		TheSpawn = NewSpawnAPI(fs)
+		wh.router.GET("/spawn/list", wh.UnitList)
+		wh.router.GET("/spawn/unit/:name", wh.GetUnit)
+	}
 }
-
-// BIG TODO
-// handle unit file parsing , indexing and serving
-// for spawn monster.
 
 func (wh *WebHandler) UnitList(c *gin.Context) {
 	// TODO hand list out of current available unit files
@@ -101,6 +105,10 @@ func (wh *WebHandler) UnitList(c *gin.Context) {
 func (wh *WebHandler) GetUnit(c *gin.Context) {
 	// TODO hand list out of current available unit files
 	UnitName := c.Params.ByName("name")
+	if TheSpawn.templates.Lookup(UnitName) == nil {
+		c.AbortWithStatus(404)
+		return
+	}
 	logger.Debug("Unit Requested is %s", UnitName)
 	client, err := GetIP(c)
 	if err != nil {

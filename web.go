@@ -21,6 +21,7 @@ type WebHandler struct {
 func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh := &WebHandler{}
 	// create the router
+	//gin.SetMode(gin.ReleaseMode)
 	wh.router = gin.Default()
 	// bind the lease db
 	wh.store = l
