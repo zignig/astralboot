@@ -76,8 +76,13 @@ func (sa *SpawnAPI) ScanUnits() {
 func (wh *WebHandler) RocketHandler() {
 	// bind the test file system
 	// TODO bind this to the primary config and include fs
-	fs := &Diskfs{"./rocket"}
-	//fs := &IPfsfs{"QmSeHSnaGkgyKc5a5WiWLuqAAa7socn2DgoSpSmgJPZAy8"}
+	rocketRef := wh.config.Refs.Rocket
+	var fs ROfs
+	if rocketRef == "" {
+		fs = &Diskfs{"./rocket"}
+	} else {
+		fs = &IPfsfs{rocketRef}
+	}
 	RocketACI = fs
 
 	t, err := template.New("rocket").Parse(MetaDiscovery)
