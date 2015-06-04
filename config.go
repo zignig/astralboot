@@ -18,8 +18,12 @@ type operatingSystem struct {
 	templates   *template.Template
 }
 
+type Refs struct {
+	Boot   string `toml:"boot"`
+	Rocket string `toml:"rocket"`
+}
+
 type Config struct {
-	Ref    string `toml:"ref"`
 	Interf string `toml:"interface"`
 	// switchable services
 	Spawn     bool
@@ -29,6 +33,7 @@ type Config struct {
 	DNSServer net.IP
 	Domain    string
 	DBname    string
+	Refs      *Refs // ipfs references
 	// not exported generated config parts
 	fs     ROfs
 	OSList map[string]*operatingSystem
@@ -39,6 +44,13 @@ func GetConfig(path string) (c *Config) {
 		logger.Critical("Config file does not exists,create config")
 		return
 	}
+	// loading the refs from seperate file
+	re := &Refs{}
+	if _, err := toml.DecodeFile("refs.toml", &re); err != nil {
+		logger.Critical("Reference file does not exists")
+	}
+	fmt.Println(re)
+	c.Refs = re
 	// bind the cache (not exported)
 	// Add items from system not in config file
 	if c.Interf == "" {
@@ -77,7 +89,7 @@ func GetConfig(path string) (c *Config) {
 	if *fileFlag {
 		filesystem = &Diskfs{"./data"}
 	} else {
-		filesystem = &IPfsfs{c.Ref}
+		filesystem = &IPfsfs{c.Refs.Boot}
 	}
 	c.fs = filesystem
 
