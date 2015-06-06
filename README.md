@@ -13,7 +13,9 @@ The following services are provided
 2. TFTP , simple file transfer
 3. HTTP , for serving images and configs
 
-It pulls its data files out of [ipfs](http://ipfs.io/), which means that they are downloaded on request and then stored locally.
+It can pull its data files out of [ipfs](http://ipfs.io/), which means that they are downloaded on request and then stored locally.
+
+Local file serving also works with local file system folders ( see INSTRUCTIONS for details )
 
 ## Required 
 
@@ -35,7 +37,7 @@ assumes a working golang environment.
 
 >go build
 
-also the ipfs service, which is currently  in alpha , is available from http://github.com/jbenet/go-ipfs
+also the ipfs service, which is currently  in alpha , is available from http://github.com/ipfs/go-ipfs
 
 will need to be installed and running 
 
@@ -61,9 +63,11 @@ The test machines to be bootstrapped have one network interface attached to isol
 
 Once you have the astral boot binary built, edit the config.toml file for interfaces on your virtual machines.
 
-a minimal config is
+The default hashes for booting are included in the git repository , put them into place by running.
 
->ref = "QmCoolIPFSHash"
+> cp refs.toml.dist refs.toml
+
+a minimal config is
 
 >interface = "eth1"
 
@@ -72,7 +76,7 @@ It is worth noting that this will need to be run as root , dhcp, tftp and http n
 
 Now you are good to go, run the astralboot binary
 
-1. It will grab some files from ipfs and load up the various operating system files.
+1. It will grab some files from ipfs ( or local file system )and load up the various operating system files.
 2. On the first run it will populate the leases.db file with empty ip addresses.
 3. All the services will start and it will be ready to serve.
 
@@ -105,7 +109,7 @@ Downloading the files can be done with the following ipfs commands
 
 In the astralboot folder : 
 
->ipfs get -o=data “hash from the config file”
+>ipfs get -o=data “hash from the refs.toml file”
 
 then run astralboot with a -l ( l for larry ) flag an it will use the local file system.
 
