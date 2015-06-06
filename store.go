@@ -105,6 +105,22 @@ func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 	return true
 }
 
+// update class and activate
+func (s Store) UpdateClass(mac net.HardwareAddr, name string, class string) bool {
+	l := &Lease{}
+	logger.Info("Update ", mac, " to active")
+	l, err := s.leases.Mac(mac)
+	if err != nil {
+		fmt.Printf("lease error %s", err)
+		return false
+	}
+	l.Active = true
+	l.Distro = name
+	l.Class = class
+	s.leases.Save(s.DBname)
+	return true
+}
+
 // check lease
 func (s Store) CheckLease(mac net.HardwareAddr) bool {
 	l := &Lease{}

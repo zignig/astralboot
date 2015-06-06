@@ -10,6 +10,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// operating system struct
+// loaded in templates.go
 type operatingSystem struct {
 	Name        string
 	Description string
@@ -18,11 +20,19 @@ type operatingSystem struct {
 	templates   *template.Template
 }
 
+// c.lass list
+// sub type of the operating system type
+type classes struct {
+	Classes []string `toml:"classes"`
+}
+
+// references for ipfs loading
 type Refs struct {
 	Boot   string `toml:"boot"`
 	Rocket string `toml:"rocket"`
 }
 
+// base configuration structure
 type Config struct {
 	Interf string `toml:"interface"`
 	// switchable services

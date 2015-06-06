@@ -31,16 +31,25 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh.fs = c.fs
 
 	// templates
+	// base os selector
 	t, err := template.New("list").Parse(OsSelector)
 	if err != nil {
-		fmt.Println("template error", err)
+		logger.Critical("template error : %v", err)
 		return nil
 	}
+	// class selector
+	_, err = t.New("class").Parse(ClassSelector)
+	if err != nil {
+		logger.Critical("template error : %v", err)
+		return nil
+	}
+
 	wh.templates = t
 	// chose and operating system
 	wh.router.GET("/choose", wh.Lister)
 	wh.router.GET("/choose/:dist/:mac", wh.Chooser)
 	wh.router.GET("/class/:dist/:mac", wh.ClassChooser)
+	wh.router.GET("/setclass/:dist/:class/:mac", wh.ClassSet)
 	// get the boot line for your operating system
 	wh.router.GET("/boot/:dist/:mac", wh.Starter)
 	// load the kernel and file system
@@ -170,7 +179,6 @@ func (wh *WebHandler) Images(c *gin.Context) {
 
 // first boot to choose os
 // generates selection menu for os choice
-// TODO , make this into a generic layered menu
 func (w *WebHandler) Chooser(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
@@ -186,20 +194,36 @@ func (w *WebHandler) Chooser(c *gin.Context) {
 }
 
 // first choose a class for the given os
-// TODO broken at the moment
-// need to select th sub class from a menu
+// need to select the sub class from a menu
 func (w *WebHandler) ClassChooser(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
 	logger.Info("Choosing os for %s on %s", dist, mac)
+	// add the distro and class to the w.config passed to template
+	m := make(map[string]interface{})
+	m["config"] = w.config
+	m["dist"] = dist
+	m["mac"] = mac
+	m["classes"] = w.config.OSList[dist].Classes
+	err := w.templates.ExecuteTemplate(c.Writer, "class", m)
+	if err != nil {
+		fmt.Println("class template error ", err)
+	}
+}
+
+// update the lease to have the selected class
+func (w *WebHandler) ClassSet(c *gin.Context) {
+	dist := c.Params.ByName("dist")
+	mac := c.Params.ByName("mac")
+	class := c.Params.ByName("class")
+	// set the class of the lease
 	macString, err := net.ParseMAC(mac)
 	if err != nil {
 		fmt.Println("mac update error ", err)
 		return
 	}
-	w.store.UpdateActive(macString, dist)
-	logger.Critical("%v", w.config.OSList[dist])
-	err = w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
+	w.store.UpdateClass(macString, dist, class)
+	w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
 }
 
 // boot into selected os
@@ -233,15 +257,17 @@ goto top
 
 `
 
-// class selectore for image class
+// class selector for image class
 var ClassSelector = `#!ipxe
 
-:top{{ $serverIP := .BaseIP }}
-menu Choose an operating sytem {{ range .OSList}}
-item {{ .Name }} {{ .Description }}{{ end }}
+:top{{ $serverIP := .config.BaseIP }}{{ $dist := .dist }}
+menu Choose a systems class from {{ .dist }}{{ range .classes }}
+item {{ .}} {{ . }}{{ end }}
 choose os && goto ${os}
-{{ range .OSList}}
-:{{ .Name }}
-chain http://{{ $serverIP }}/choose/{{ .Name }}/${net0/mac}
+{{ range .classes }}
+:{{ . }}
+chain http://{{ $serverIP }}/setclass/{{ $dist }}/{{ . }}/${net0/mac}
 goto top
+{{ end }}
+
 `

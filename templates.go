@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/BurntSushi/toml"
 	"io/ioutil"
 	"strings"
 	"text/template"
@@ -71,14 +72,21 @@ func (os *operatingSystem) LoadTemplates(c *Config) (pass bool) {
 	// check for operating system classes
 	classPath := "boot/" + os.Name + "/" + "classes.toml"
 	classFile, err := c.fs.Get(classPath)
+	defer classFile.Close()
 	if err != nil {
 		logger.Critical("Class List fail, %s", err)
 		// still returns true , so the OS is added
+		// TODO class loader
 		return true
 	}
-	// TODO pass class file
-	logger.Debug("Class File : %s", classFile)
+	// load the clases file
+	classString, _ := ioutil.ReadAll(classFile)
+	cl := &classes{}
+	_, err = toml.Decode(string(classString), &cl)
+	fmt.Println(cl, err)
+	// attach to the os list
+	os.Classes = cl.Classes
+	logger.Debug("Class File : %s", cl)
 	os.HasClasses = true
 	return true
-
 }
