@@ -1,4 +1,3 @@
-// Example of minimal DHCP server:
 package main
 
 import (

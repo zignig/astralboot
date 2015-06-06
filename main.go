@@ -1,3 +1,4 @@
+// Combined boot server
 package main
 
 func main() {
