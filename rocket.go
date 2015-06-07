@@ -78,7 +78,7 @@ func (wh *WebHandler) RocketHandler() {
 	// TODO bind this to the primary config and include fs
 	rocketRef := wh.config.Refs.Rocket
 	var fs ROfs
-	if rocketRef == "" {
+	if (rocketRef == "") || (wh.config.Local == true) {
 		fs = &Diskfs{"./rocket"}
 	} else {
 		fs = &IPfsfs{rocketRef}

@@ -1,19 +1,17 @@
-config.go:51:	//TODO fix interface checks
-config.go:72:	//TODO select file system from flag or config
-leases.go:71:	// TODO get dist list
-leases.go:90:	logger.Critical("TODO class list")
-leases.go:110:// TODO needs locking , perhaps a channel system for linear updates
-proxy.go:35:	//TODO need to parse and return http status
-rocket.go:24:// BIG TODO
-rocket.go:69:			sa.units[shortName] = "active" // TODO put unit info in here
-rocket.go:78:	// TODO bind this to the primary config and include fs
-rocket.go:101:	// TODO hand list out of current available unit files
-rocket.go:106:	// TODO hand list out of current available unit files
-store.go:56:	// TODO
-store.go:69:	// TODO  write and close json file
-store.go:155:	//TODO update lease to be active false
-templates.go:79:	// TODO pass class file
-web.go:54:	// TODO
-web.go:79:// TODO and keep a cache so it is not regenerated every request
-web.go:173:// TODO , make this into a generic layered menu
-web.go:189:// TODO broken at the moment
+config.go:	//TODO fix interface checks
+config.go:	//TODO select file system from flag or config
+leases.go:	// TODO get dist list
+leases.go:	logger.Critical("TODO class list")
+leases.go:// TODO needs locking , perhaps a channel system for linear updates
+proxy.go:	//TODO need to parse and return http status
+rocket.go:// BIG TODO
+rocket.go:			sa.units[shortName] = "active" // TODO put unit info in here
+rocket.go:	// TODO bind this to the primary config and include fs
+rocket.go:	// TODO hand list out of current available unit files
+rocket.go:	// TODO hand list out of current available unit files
+store.go:	// TODO
+store.go:	// TODO  write and close json file
+store.go:	//TODO update lease to be active false
+templates.go:		// TODO class loader
+web.go:	// TODO
+web.go:// TODO and keep a cache so it is not regenerated every request

@@ -43,12 +43,14 @@ type Config struct {
 	DNSServer net.IP
 	Domain    string
 	DBname    string
+	Local     bool
 	Refs      *Refs // ipfs references
 	// not exported generated config parts
 	fs     ROfs
 	OSList map[string]*operatingSystem
 }
 
+// load config and settings
 func GetConfig(path string) (c *Config) {
 	if _, err := toml.DecodeFile(path, &c); err != nil {
 		logger.Critical("Config file does not exists,create config")
@@ -97,6 +99,7 @@ func GetConfig(path string) (c *Config) {
 	var filesystem ROfs
 	flag.Parse()
 	if *fileFlag {
+		c.Local = true
 		filesystem = &Diskfs{"./data"}
 	} else {
 		filesystem = &IPfsfs{c.Refs.Boot}
