@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"sync"
 	"time"
 )
 
 //Store :  struct for dhcp data store
 type Store struct {
 	DBname string
-	sessMu sync.Mutex
 	leases LeaseList
 	config *Config
 }

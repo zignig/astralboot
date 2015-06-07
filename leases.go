@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -13,6 +14,8 @@ import (
 type LeaseList struct {
 	Leases []*Lease
 }
+
+var leaseLock sync.Mutex
 
 //Lease : storage structure for each lease
 type Lease struct {

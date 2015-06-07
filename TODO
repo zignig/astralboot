@@ -1,17 +1,14 @@
-config.go:	//TODO fix interface checks
-config.go:	//TODO select file system from flag or config
-leases.go:	// TODO get dist list
-leases.go:	logger.Critical("TODO class list")
-leases.go:// TODO needs locking , perhaps a channel system for linear updates
-proxy.go:	//TODO need to parse and return http status
-rocket.go:// BIG TODO
-rocket.go:			sa.units[shortName] = "active" // TODO put unit info in here
-rocket.go:	// TODO bind this to the primary config and include fs
-rocket.go:	// TODO hand list out of current available unit files
-rocket.go:	// TODO hand list out of current available unit files
-store.go:	// TODO
-store.go:	// TODO  write and close json file
-store.go:	//TODO update lease to be active false
-templates.go:		// TODO class loader
-web.go:	// TODO
-web.go:// TODO and keep a cache so it is not regenerated every request
+config.go:75:	//TODO fix interface checks
+config.go:96:	//TODO select file system from flag or config
+leases.go:73:	// TODO get dist list
+leases.go:93:	logger.Critical("TODO class list")
+leases.go:113:// TODO needs locking , perhaps a channel system for linear updates
+proxy.go:36:	//TODO need to parse and return http status
+rocket.go:27:// TODO move into spawn module
+rocket.go:70:			sa.units[shortName] = "active" // TODO put unit info in here
+rocket.go:112:	// TODO hand list out of current available unit files
+store.go:165:	//TODO update lease to be active false
+templates.go:80:		// TODO class loader
+tftp.go:54:// TODO fix logging
+web.go:65:	// TODO
+web.go:89:// TODO and keep a cache so it is not regenerated every request

@@ -48,7 +48,7 @@ func (sa *SpawnAPI) ScanUnits() {
 	logger.Debug("Scan for units")
 	unitlist, err := sa.fs.List("units")
 	if err != nil {
-		logger.Error("Unit scan error , %s", err)
+		logger.Error("Unit scan error , %v", err)
 	}
 	// build the templates
 	NewTemplates := template.New("")
