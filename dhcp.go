@@ -1,3 +1,4 @@
+// DHCP server
 package main
 
 import (
@@ -9,7 +10,6 @@ import (
 	"time"
 )
 
-// Example using DHCP with a single network interface device
 func dhcpServer(c *Config, l *Store) {
 	handler := &DHCPHandler{
 		ip:            c.BaseIP,
@@ -32,6 +32,7 @@ type lease struct {
 	expiry time.Time // When the lease expires
 }
 
+//DHCPHandler : data structure for the dhcp server
 type DHCPHandler struct {
 	ip            net.IP        // Server IP to use
 	options       dhcp.Options  // Options to send to DHCP Clients
@@ -42,6 +43,7 @@ type DHCPHandler struct {
 	config        *Config
 }
 
+//ServeDHCP : function for every dhcp request
 func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options dhcp.Options) (d dhcp.Packet) {
 	// options for booting device
 	skinnyOptions := dhcp.Options{

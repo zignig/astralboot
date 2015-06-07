@@ -1,3 +1,4 @@
+// TFTP server
 package main
 
 import (
@@ -14,10 +15,12 @@ import (
 
 var localConf *Config
 
+// HandleWrite : writing is disabled in this service
 func HandleWrite(filename string, r *io.PipeReader) {
-	r.CloseWithError(fmt.Errorf("Server is Read Only"))
+	r.CloseWithError(fmt.Errorf("server is read only"))
 }
 
+// HandleRead : read a ROfs file and send over tftp
 func HandleRead(filename string, w *io.PipeWriter) {
 	fmt.Printf("Filename : %v \n", []byte(filename))
 	var exists bool
@@ -43,10 +46,12 @@ func HandleRead(filename string, w *io.PipeWriter) {
 		}
 		w.Close()
 	} else {
-		w.CloseWithError(fmt.Errorf("File not exists: %s", filename))
+		w.CloseWithError(fmt.Errorf("file does not exists: %s", filename))
 	}
 }
 
+// tftp server
+// TODO fix logging
 func tftpServer(conf *Config) {
 	localConf = conf
 	addr, e := net.ResolveUDPAddr("udp", ":69")

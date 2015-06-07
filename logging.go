@@ -1,3 +1,4 @@
+// logging creator
 package main
 
 import (
@@ -11,6 +12,7 @@ var format = logging.MustStringFormatter(
 	"%{color}%{time:15:04:05.000} %{shortfunc} > %{level:.7s} %{id:03x}%{color:reset} %{message}",
 )
 
+//LogSetup : set up the logging for information output
 func LogSetup() {
 	backend1 := logging.NewLogBackend(os.Stderr, "", 0)
 	backend1Formatter := logging.NewBackendFormatter(backend1, format)

@@ -1,3 +1,4 @@
+// Loader for operating system templates
 package main
 
 import (
@@ -10,14 +11,14 @@ import (
 
 // dealing with os layouts and templates
 
-// get a listing of the operating systems
-func (c *Config) OSListGet() (os map[string]*operatingSystem) {
-	os = make(map[string]*operatingSystem)
+// OSListGet :  get a listing of the operating systems
+func (c *Config) OSListGet() (os map[string]*OperatingSystem) {
+	os = make(map[string]*OperatingSystem)
 	list, _ := c.fs.List("boot")
 	logger.Info("OS listing ", list)
 	for _, i := range list {
 		logger.Info(" ----- " + i + "-------")
-		tmpOS := &operatingSystem{Name: i, Description: i}
+		tmpOS := &OperatingSystem{Name: i, Description: i}
 		if tmpOS.CheckAndLoad(c) == true {
 			os[i] = tmpOS
 		}
@@ -25,8 +26,8 @@ func (c *Config) OSListGet() (os map[string]*operatingSystem) {
 	return
 }
 
-// check and load the operating system
-func (os *operatingSystem) CheckAndLoad(c *Config) (pass bool) {
+// CheckAndLoad : check and load the operating system
+func (os *OperatingSystem) CheckAndLoad(c *Config) (pass bool) {
 	subList, err := c.fs.List("boot/" + os.Name)
 	if err != nil {
 		logger.Error("SubList Error %s", err)
@@ -45,8 +46,8 @@ func (os *operatingSystem) CheckAndLoad(c *Config) (pass bool) {
 	return true
 }
 
-// load the templates for the operating system
-func (os *operatingSystem) LoadTemplates(c *Config) (pass bool) {
+// LoadTemplates : load the templates for the operating system
+func (os *OperatingSystem) LoadTemplates(c *Config) (pass bool) {
 	path := "boot/" + os.Name + "/template"
 	templateList, err := c.fs.List(path)
 	if err != nil {

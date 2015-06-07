@@ -1,3 +1,4 @@
+// Config loading and information structures
 package main
 
 import (
@@ -10,9 +11,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// operating system struct
-// loaded in templates.go
-type operatingSystem struct {
+// OperatingSystem : struct ,  loaded in templates.go
+type OperatingSystem struct {
 	Name        string
 	Description string
 	HasClasses  bool
@@ -26,13 +26,13 @@ type classes struct {
 	Classes []string `toml:"classes"`
 }
 
-// references for ipfs loading
+//Refs :  references for ipfs loading
 type Refs struct {
 	Boot   string `toml:"boot"`
 	Rocket string `toml:"rocket"`
 }
 
-// base configuration structure
+//Config :  base configuration structure
 type Config struct {
 	Interf string `toml:"interface"`
 	// switchable services
@@ -47,10 +47,10 @@ type Config struct {
 	Refs      *Refs // ipfs references
 	// not exported generated config parts
 	fs     ROfs
-	OSList map[string]*operatingSystem
+	OSList map[string]*OperatingSystem
 }
 
-// load config and settings
+//GetConfig :  loads config and settings from ipfs ref or file system
 func GetConfig(path string) (c *Config) {
 	if _, err := toml.DecodeFile(path, &c); err != nil {
 		logger.Critical("Config file does not exists,create config")
@@ -112,6 +112,7 @@ func GetConfig(path string) (c *Config) {
 	return
 }
 
+//PrintConfig : dumps config to stdout
 func (c *Config) PrintConfig() {
 	buf := new(bytes.Buffer)
 	err := toml.NewEncoder(buf).Encode(c)

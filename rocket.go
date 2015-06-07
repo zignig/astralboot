@@ -1,3 +1,4 @@
+// Serve rocket files and systemd units
 package main
 
 import (
@@ -14,6 +15,7 @@ var tmpl *template.Template // discovery template
 
 // run the rocket aci out of a local fs for now
 
+// RocketACI : local read only file system for rocket system
 var RocketACI ROfs
 
 type rktTmpl struct {
@@ -21,21 +23,19 @@ type rktTmpl struct {
 	AciName string
 }
 
-// BIG TODO
-// handle unit file parsing , indexing and serving
-// for spawn monster.
-
-// spawn api construct
+//SpawnAPI  spawn api construct
+// TODO move into spawn module
 type SpawnAPI struct {
 	units     map[string]string
 	fs        ROfs
 	templates *template.Template
 }
 
-// local spawn API instance
+// TheSpawn : local spawn API instance
 // this may need to be pushed up into config
 var TheSpawn *SpawnAPI
 
+// NewSpawnAPI : create a new spawn instance
 func NewSpawnAPI(fs ROfs) (sa *SpawnAPI) {
 	sa = &SpawnAPI{}
 	sa.fs = fs
@@ -43,6 +43,7 @@ func NewSpawnAPI(fs ROfs) (sa *SpawnAPI) {
 	return
 }
 
+// ScanUnits : get a list of the local available unit files
 func (sa *SpawnAPI) ScanUnits() {
 	logger.Debug("Scan for units")
 	unitlist, err := sa.fs.List("units")
@@ -73,9 +74,8 @@ func (sa *SpawnAPI) ScanUnits() {
 	logger.Debug("%s", sa.units)
 }
 
+// RocketHandler : add the rocket and spawn parts to the wh router
 func (wh *WebHandler) RocketHandler() {
-	// bind the test file system
-	// TODO bind this to the primary config and include fs
 	rocketRef := wh.config.Refs.Rocket
 	var fs ROfs
 	if (rocketRef == "") || (wh.config.Local == true) {
@@ -102,11 +102,12 @@ func (wh *WebHandler) RocketHandler() {
 	}
 }
 
+// UnitList : send the list of units as a JSON list
 func (wh *WebHandler) UnitList(c *gin.Context) {
-	// TODO hand list out of current available unit files
 	c.IndentedJSON(200, TheSpawn.units)
 }
 
+// GetUnit : send an individual Unit file as text
 func (wh *WebHandler) GetUnit(c *gin.Context) {
 	// TODO hand list out of current available unit files
 	UnitName := c.Params.ByName("name")
@@ -127,6 +128,7 @@ func (wh *WebHandler) GetUnit(c *gin.Context) {
 
 }
 
+// AciImage : sends athe requested rocket aci file
 func (wh *WebHandler) AciImage(c *gin.Context) {
 	logger.Debug(c.Request.RequestURI)
 	AciName := c.Params.ByName("imageName")
@@ -139,7 +141,7 @@ func (wh *WebHandler) AciImage(c *gin.Context) {
 	io.Copy(c.Writer, fh)
 }
 
-// perform action template
+// Discovery : templates the rkt discovery data
 func (wh *WebHandler) Discovery(c *gin.Context) {
 	logger.Debug(c.Request.RequestURI)
 	queryMap := c.Request.URL.Query()
@@ -158,6 +160,7 @@ func (wh *WebHandler) Discovery(c *gin.Context) {
 	}
 }
 
+// MetaDiscovery : template for aci dicovery
 var MetaDiscovery = `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -167,4 +170,5 @@ var MetaDiscovery = `<!DOCTYPE html>
 <html>
 `
 
+// AUTH line ( unused )
 //<meta name="ac-discovery-pubkeys" content="example.com/{{ .AciName }} https://example.com/pubkeys.gpg">

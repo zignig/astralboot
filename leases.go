@@ -1,6 +1,5 @@
-package main
-
 // lease database for dhcp server
+package main
 
 import (
 	"encoding/json"
@@ -10,14 +9,14 @@ import (
 	"time"
 )
 
-// Leases stored on disk as JSON file
+//LeaseList : Leases stored on disk as JSON file
 type LeaseList struct {
 	Leases []*Lease
 }
 
-// Leases storage
+//Lease : storage structure for each lease
 type Lease struct {
-	Id       int64     // id of the machine
+	ID       int64     // id of the machine
 	MAC      string    // mac address as a string
 	IP       string    // use the SetIP and GetIP funcs
 	Active   bool      // lease is active
@@ -31,6 +30,7 @@ type Lease struct {
 
 // Lease List functions
 
+//IP return a lease for the given IP addresss
 func (ll LeaseList) IP(ip net.IP) (l *Lease, err error) {
 	for _, i := range ll.Leases {
 		if i.IP == ip.String() {
@@ -40,6 +40,7 @@ func (ll LeaseList) IP(ip net.IP) (l *Lease, err error) {
 	return nil, errors.New("no lease")
 }
 
+//Mac return a lease for the given Hardwareaddr
 func (ll LeaseList) Mac(mac net.HardwareAddr) (l *Lease, err error) {
 	for _, i := range ll.Leases {
 		if i.MAC == mac.String() {
@@ -49,6 +50,7 @@ func (ll LeaseList) Mac(mac net.HardwareAddr) (l *Lease, err error) {
 	return l, errors.New("no lease for mac")
 }
 
+//Free : returns an unused address
 func (ll LeaseList) Free(mac net.HardwareAddr) (l *Lease, err error) {
 	logger.Critical("%v leases", len(ll.Leases))
 	for _, i := range ll.Leases {
@@ -58,15 +60,15 @@ func (ll LeaseList) Free(mac net.HardwareAddr) (l *Lease, err error) {
 		}
 	}
 	logger.Critical("No leases available")
-	return nil, errors.New("No available leases")
+	return nil, errors.New("no available leases")
 }
 
+//Append : lease appender
 func (ll *LeaseList) Append(l *Lease) {
 	ll.Leases = append(ll.Leases, l)
-	//logger.Debug("appender %v", ll)
 }
 
-// Returns a map of leaselist for classes of a given disto
+//GetDist :  Returns a map of leaselist for classes of a given disto
 func (ll LeaseList) GetDist(dist string) (le map[string]*LeaseList, err error) {
 	// TODO get dist list
 	le = make(map[string]*LeaseList)
@@ -83,6 +85,7 @@ func (ll LeaseList) GetDist(dist string) (le map[string]*LeaseList, err error) {
 	return
 }
 
+//GetClasses : return a list of classes ( not working for now )
 func (ll LeaseList) GetClasses() (classes []string, err error) {
 	for i := range ll.Leases {
 		logger.Critical("%v", i)
@@ -91,7 +94,7 @@ func (ll LeaseList) GetClasses() (classes []string, err error) {
 	return
 }
 
-// load the leases from the json file on disk
+//Load :  load the leases from the json file on disk
 func Load(name string) (ll LeaseList) {
 	content, err := ioutil.ReadFile(name)
 	if err != nil {
@@ -106,7 +109,7 @@ func Load(name string) (ll LeaseList) {
 	return ll
 }
 
-// Save the leases to disk
+//Save : write the leases to disk
 // TODO needs locking , perhaps a channel system for linear updates
 func (ll LeaseList) Save(name string) {
 	enc, err := json.MarshalIndent(ll, "", " ")

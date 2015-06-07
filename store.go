@@ -1,6 +1,5 @@
+// Store interface for lease wrangling.
 package main
-
-// lease database for dhcp server
 
 import (
 	"fmt"
@@ -10,7 +9,7 @@ import (
 	"time"
 )
 
-// struct for dhcp data store
+//Store :  struct for dhcp data store
 type Store struct {
 	DBname string
 	sessMu sync.Mutex
@@ -19,6 +18,8 @@ type Store struct {
 }
 
 // store functions
+
+// NewStore : create a new store object
 func NewStore(c *Config) *Store {
 	// create a new store
 	store := Store{}
@@ -39,7 +40,7 @@ func NewStore(c *Config) *Store {
 	return &store
 }
 
-// build some initial tables
+// Build : generate the initial lease file
 func (s Store) Build(c *Config) {
 	logger.Critical("Building lease tables")
 	leaseList := NetList(c.BaseIP, c.Subnet)
@@ -47,14 +48,13 @@ func (s Store) Build(c *Config) {
 	for count, i := range leaseList {
 		//fmt.Println("add a lease for ", i)
 		l := &Lease{}
-		l.Id = int64(count)
+		l.ID = int64(count)
 		l.Created = time.Now()
 		l.IP = i.String()
 		ll.Leases = append(ll.Leases, l)
 	}
 	s.leases = ll
-	// TODO
-	// need to disable
+	// Reserve the following
 	// - network address
 	s.Reserve(leaseList[0])
 	// - self
@@ -64,17 +64,12 @@ func (s Store) Build(c *Config) {
 	s.leases.Save(s.DBname)
 }
 
-// close the store
-func (s Store) Close() {
-	// TODO  write and close json file
-}
-
-// return a net.IP from the lease
+// GetIP :  return a net.IP from the lease
 func (l Lease) GetIP() (ip net.IP) {
 	return net.ParseIP(l.IP)
 }
 
-// mark a lease as reserved
+// Reserve : mark a lease as reserved
 func (s Store) Reserve(ip net.IP) {
 	l := &Lease{}
 	l, err := s.leases.IP(ip)
@@ -90,7 +85,7 @@ func (s Store) Reserve(ip net.IP) {
 	s.leases.Save(s.DBname)
 }
 
-// update active
+// UpdateActive : update a lease to active
 func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 	l := &Lease{}
 	logger.Info("Update ", mac, " to active")
@@ -105,7 +100,7 @@ func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 	return true
 }
 
-// update class and activate
+// UpdateClass : update class and activate
 func (s Store) UpdateClass(mac net.HardwareAddr, name string, class string) bool {
 	l := &Lease{}
 	logger.Info("Update ", mac, " to active")
@@ -121,7 +116,7 @@ func (s Store) UpdateClass(mac net.HardwareAddr, name string, class string) bool
 	return true
 }
 
-// check lease
+// CheckLease : check if a lease exists
 func (s Store) CheckLease(mac net.HardwareAddr) bool {
 	l := &Lease{}
 	l, err := s.leases.Mac(mac)
@@ -135,7 +130,7 @@ func (s Store) CheckLease(mac net.HardwareAddr) bool {
 	return false
 }
 
-// get ip
+// GetIP : fore the given mac address get the IP address
 func (s Store) GetIP(mac net.HardwareAddr) (ip net.IP, err error) {
 	l := &Lease{}
 	l, err = s.leases.Mac(mac)
@@ -148,9 +143,7 @@ func (s Store) GetIP(mac net.HardwareAddr) (ip net.IP, err error) {
 	return ip, nil
 }
 
-// get a list of ips for a distro
-// coreos cluster testing
-// look into using subclass
+// DistLease : for a given distro get a map of the classes as lists
 func (s Store) DistLease(dist string) (ll map[string]*LeaseList) {
 	ll, err := s.leases.GetDist(dist)
 	if err != nil {
@@ -160,17 +153,19 @@ func (s Store) DistLease(dist string) (ll map[string]*LeaseList) {
 	return
 }
 
-// get a lease from an IP
+// GetFromIP : get a lease from an IP
 func (s Store) GetFromIP(ip net.IP) (l *Lease, err error) {
 	newl := &Lease{}
 	newl, err = s.leases.IP(ip)
 	return newl, err
 }
 
+// Release : no implimendesd
 func (s Store) Release(mac net.HardwareAddr) {
 	//TODO update lease to be active false
 }
 
+// GetLease : get an existing lease or mark a new one.
 //  Find a  free address
 // 1. unused
 // 2. inactive
@@ -195,7 +190,7 @@ func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
 		l.MAC = mac.String()
 		l.Created = time.Now()
 		if l.Name == "" {
-			l.Name = fmt.Sprintf("node%d", l.Id)
+			l.Name = fmt.Sprintf("node%d", l.ID)
 		}
 		logger.Debug("updated lease")
 		s.leases.Save(s.DBname)
@@ -205,7 +200,7 @@ func (s Store) GetLease(mac net.HardwareAddr) (l *Lease, err error) {
 	return l, err
 }
 
-//helper functions
+// NetList : subnet helper function
 func NetList(ip net.IP, subnet net.IP) (IPlist []net.IP) {
 	//ip, ipnet, err := net.ParseCIDR(cidrNet)
 	mask := net.IPv4Mask(subnet[0], subnet[1], subnet[2], subnet[3])
@@ -216,6 +211,7 @@ func NetList(ip net.IP, subnet net.IP) (IPlist []net.IP) {
 	return
 }
 
+// incIP : looper function for subnets
 func incIP(ip net.IP) {
 	for j := len(ip) - 1; j >= 0; j-- {
 		ip[j]++

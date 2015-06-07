@@ -1,3 +1,4 @@
+// Web services for boot and ipxe menus
 package main
 
 import (
@@ -9,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// construct for web services
+// WebHandler : construct for web services
 type WebHandler struct {
 	router    *gin.Engine
 	config    *Config
@@ -18,6 +19,7 @@ type WebHandler struct {
 	fs        ROfs
 }
 
+// NewWebServer : create and configure a new web server
 func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh := &WebHandler{}
 	// create the router
@@ -68,13 +70,12 @@ func NewWebServer(c *Config, l *Store) *WebHandler {
 	return wh
 }
 
+// Run : run the web server
 func (wh *WebHandler) Run() {
 	wh.router.Run(":80")
 }
 
-// Data Construct for templating
-// includes config , lease
-// Adds  IP at top level
+// TemplateData : template construct
 type TemplateData struct {
 	Name    string
 	IP      net.IP
@@ -84,7 +85,7 @@ type TemplateData struct {
 	Lease   *Lease
 }
 
-// generate template data from a mac address
+// GenTemplateData : generate template data from a mac address
 // TODO and keep a cache so it is not regenerated every request
 func (wh *WebHandler) GenTemplateData(ip net.IP, dist string) *TemplateData {
 	td := &TemplateData{}
@@ -97,7 +98,7 @@ func (wh *WebHandler) GenTemplateData(ip net.IP, dist string) *TemplateData {
 	if lease.Name != "" {
 		td.Name = lease.Name
 	} else {
-		td.Name = fmt.Sprintf("node%d", lease.Id)
+		td.Name = fmt.Sprintf("node%d", lease.ID)
 	}
 	td.IP = lease.GetIP()
 	td.BaseIP = wh.config.BaseIP
@@ -105,7 +106,7 @@ func (wh *WebHandler) GenTemplateData(ip net.IP, dist string) *TemplateData {
 	return td
 }
 
-// just get the client ip
+// GetIP : just get the client ip
 func GetIP(c *gin.Context) (ip net.IP, err error) {
 	tmp := c.ClientIP()
 	ipStr, _, err := net.SplitHostPort(tmp)
@@ -117,10 +118,9 @@ func GetIP(c *gin.Context) (ip net.IP, err error) {
 	return ip, nil
 }
 
-// perform config template
+// Config : perform config template
 // config requests  name and appends the device class
 // so you can have a template per server class
-
 func (wh *WebHandler) Config(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	action := c.Params.ByName("action")
@@ -143,7 +143,7 @@ func (wh *WebHandler) Config(c *gin.Context) {
 	}
 }
 
-// perform action template
+// Action : perform template for distro template files
 func (wh *WebHandler) Action(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	action := c.Params.ByName("action")
@@ -161,7 +161,7 @@ func (wh *WebHandler) Action(c *gin.Context) {
 	}
 }
 
-// hands back boot images and kernels
+// Images : hands back boot images and kernels
 func (wh *WebHandler) Images(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	path := c.Params.ByName("path")
@@ -177,9 +177,8 @@ func (wh *WebHandler) Images(c *gin.Context) {
 	c.Writer.Flush()
 }
 
-// first boot to choose os
-// generates selection menu for os choice
-func (w *WebHandler) Chooser(c *gin.Context) {
+// Chooser : generates selection menu for os choice
+func (wh *WebHandler) Chooser(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
 	logger.Info("Choosing os for %s on %s", dist, mac)
@@ -188,31 +187,32 @@ func (w *WebHandler) Chooser(c *gin.Context) {
 		fmt.Println("mac update error ", err)
 		return
 	}
-	w.store.UpdateActive(macString, dist)
-	logger.Critical("%v", w.config.OSList[dist])
-	err = w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
+	wh.store.UpdateActive(macString, dist)
+	logger.Critical("%v", wh.config.OSList[dist])
+	err = wh.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", wh.config)
 }
 
+// ClassChooser : menu for class choice
 // first choose a class for the given os
 // need to select the sub class from a menu
-func (w *WebHandler) ClassChooser(c *gin.Context) {
+func (wh *WebHandler) ClassChooser(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
 	logger.Info("Choosing os for %s on %s", dist, mac)
 	// add the distro and class to the w.config passed to template
 	m := make(map[string]interface{})
-	m["config"] = w.config
+	m["config"] = wh.config
 	m["dist"] = dist
 	m["mac"] = mac
-	m["classes"] = w.config.OSList[dist].Classes
-	err := w.templates.ExecuteTemplate(c.Writer, "class", m)
+	m["classes"] = wh.config.OSList[dist].Classes
+	err := wh.templates.ExecuteTemplate(c.Writer, "class", m)
 	if err != nil {
 		fmt.Println("class template error ", err)
 	}
 }
 
-// update the lease to have the selected class
-func (w *WebHandler) ClassSet(c *gin.Context) {
+// ClassSet : update the lease to have the selected class
+func (wh *WebHandler) ClassSet(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
 	class := c.Params.ByName("class")
@@ -222,21 +222,21 @@ func (w *WebHandler) ClassSet(c *gin.Context) {
 		fmt.Println("mac update error ", err)
 		return
 	}
-	w.store.UpdateClass(macString, dist, class)
-	w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
+	wh.store.UpdateClass(macString, dist, class)
+	wh.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", wh.config)
 }
 
-// boot into selected os
-func (w *WebHandler) Starter(c *gin.Context) {
+// Starter : boot into selected os with template start
+func (wh *WebHandler) Starter(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	mac := c.Params.ByName("mac")
 	logger.Info("Starting os for %s on %s", dist, mac)
-	w.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", w.config)
+	wh.config.OSList[dist].templates.ExecuteTemplate(c.Writer, "start", wh.config)
 }
 
-// select from the os list
-func (w *WebHandler) Lister(c *gin.Context) {
-	err := w.templates.ExecuteTemplate(c.Writer, "list", w.config)
+// Lister : select from the os list
+func (wh *WebHandler) Lister(c *gin.Context) {
+	err := wh.templates.ExecuteTemplate(c.Writer, "list", wh.config)
 	if err != nil {
 		fmt.Println("template error ", err)
 	}
