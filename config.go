@@ -98,7 +98,7 @@ func GetConfig(path string) (c *Config) {
 	fileFlag := flag.Bool("l", false, "Use local file sytem")
 	var filesystem ROfs
 	flag.Parse()
-	if *fileFlag {
+	if *fileFlag == true || c.Local == true {
 		c.Local = true
 		filesystem = &Diskfs{"./data"}
 	} else {
