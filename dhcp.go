@@ -93,7 +93,7 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 				skinnyOptions[dhcp.OptionHostName] = []byte(TheLease.Name)
 			}
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP.To4(), net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
-				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
+				h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			return rp
 		}
 	case dhcp.Release:
