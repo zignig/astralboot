@@ -2,66 +2,38 @@
 package main
 
 import (
-	"bytes"
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
-	"net"
 	"os"
 
-	tftp "github.com/pin/tftp"
+	tftp "github.com/whyrusleeping/go-tftp/server"
 )
 
 var localConf *Config
 
 // HandleWrite : writing is disabled in this service
-func HandleWrite(filename string, r *io.PipeReader) {
-	r.CloseWithError(fmt.Errorf("server is read only"))
+func HandleWrite(filename string) (w io.Writer, err error) {
+	err = errors.New("Server is write only")
+	return
 }
 
-// HandleRead : read a ROfs file and send over tftp
-func HandleRead(filename string, w *io.PipeWriter) {
-	fmt.Printf("Filename : %v \n", []byte(filename))
-	var exists bool
-	d, err := localConf.fs.Get("tftp/" + filename[0:len(filename)-1])
-	defer d.Close()
-	fmt.Println(d, err)
-	if err == nil {
-		exists = true
+// HandlewritendleRead : read a ROfs file and send over tftp
+func HandleRead(filename string) (r io.Reader, err error) {
+	fmt.Printf("Filename : %v \n", filename)
+	r, err = localConf.fs.Get("/tftp/" + filename)
+	if err != nil {
+		err = errors.New("Fail")
 	}
-	if exists {
-		// copy all the data into a buffer
-		data, err := ioutil.ReadAll(d)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Copy Error : %v\n", err)
-		}
-		buf := bytes.NewBuffer(data)
-		c, e := io.Copy(w, buf)
-		d.Close()
-		if e != nil {
-			fmt.Fprintf(os.Stderr, "Can't send %s: %v\n", filename, e)
-		} else {
-			fmt.Fprintf(os.Stderr, "Sent %s (%d bytes)\n", filename, c)
-		}
-		w.Close()
-	} else {
-		w.CloseWithError(fmt.Errorf("file does not exists: %s", filename))
-	}
+	return
 }
 
 // tftp server
 // TODO fix logging
 func tftpServer(conf *Config) {
 	localConf = conf
-	addr, e := net.ResolveUDPAddr("udp", ":69")
-	if e != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", e)
-		return
-	}
-	log := log.New(os.Stderr, "", log.Ldate|log.Ltime)
-	s := tftp.Server{addr, HandleWrite, HandleRead, log}
-	e = s.Serve()
+	s := tftp.NewServer("", HandleRead, HandleWrite)
+	e := s.Serve(":69")
 	if e != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", e)
 		os.Exit(1)
