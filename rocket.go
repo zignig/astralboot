@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -138,7 +139,7 @@ func (wh *WebHandler) AciImage(c *gin.Context) {
 		logger.Debug("Rocket file error : %s", err)
 		c.AbortWithStatus(404)
 	}
-	c.Writer.Header().Set("Content-Size", string(size))
+	c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))
 	io.Copy(c.Writer, fh)
 }
 
