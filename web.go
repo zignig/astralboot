@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strconv"
 	"text/template"
 
 	"github.com/gin-gonic/gin"
@@ -166,13 +167,14 @@ func (wh *WebHandler) Images(c *gin.Context) {
 	dist := c.Params.ByName("dist")
 	path := c.Params.ByName("path")
 	logger.Info("Get %s at %s ", dist, path)
-	fh, err := wh.fs.Get("boot/" + dist + "/images/" + path)
+	fh, size, err := wh.fs.Get("boot/" + dist + "/images/" + path)
 	defer fh.Close()
 	if err != nil {
 		fmt.Println("web error ", err)
 		return
 	}
 	c.Writer.WriteHeader(200)
+	c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))
 	io.Copy(c.Writer, fh)
 	c.Writer.Flush()
 }

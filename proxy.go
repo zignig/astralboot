@@ -56,9 +56,9 @@ func (fs *IPfsfs) Ls(name string) (data []byte, err error) {
 }
 
 //Get : get a file out of ipfs ( ROfs interface )
-func (fs *IPfsfs) Get(s string) (f io.ReadCloser, err error) {
+func (fs *IPfsfs) Get(s string) (f io.ReadCloser, size int64, err error) {
 	data, err := fs.Req("cat", fs.base+"/"+s)
-	return data.Body, err
+	return data.Body, size, err
 }
 
 // ipfs listing is in json , this is the marsahlling interface

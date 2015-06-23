@@ -18,7 +18,7 @@ type ROfs interface {
 	// get a string list of the directory
 	List(name string) (names []string, err error)
 	// get an io reader of the data
-	Get(name string) (f io.ReadCloser, err error)
+	Get(name string) (f io.ReadCloser, size int64, err error)
 }
 
 //Diskfs : basic disk base file system
@@ -37,8 +37,12 @@ func (fs *Diskfs) List(name string) (names []string, err error) {
 }
 
 //Get : gets a file as an io.ReadCloser ( don't forget to close )
-func (fs *Diskfs) Get(name string) (f io.ReadCloser, err error) {
+func (fs *Diskfs) Get(name string) (f io.ReadCloser, size int64, err error) {
 	logger.Debug("FS Get Path : %s", name)
 	f, err = os.Open(fs.base + sl + name)
-	return
+	fi, err := os.Stat(fs.base + sl + name)
+	if fi != nil {
+		size = fi.Size()
+	}
+	return f, size, err
 }

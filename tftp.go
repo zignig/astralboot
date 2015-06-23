@@ -21,7 +21,7 @@ func HandleWrite(filename string) (w io.Writer, err error) {
 // HandlewritendleRead : read a ROfs file and send over tftp
 func HandleRead(filename string) (r io.Reader, err error) {
 	fmt.Printf("Filename : %v \n", filename)
-	r, err = localConf.fs.Get("/tftp/" + filename)
+	r, _, err = localConf.fs.Get("/tftp/" + filename)
 	if err != nil {
 		err = errors.New("Fail")
 	}

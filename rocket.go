@@ -57,7 +57,7 @@ func (sa *SpawnAPI) ScanUnits() {
 		if strings.HasSuffix(i, ".service") {
 			shortName := strings.TrimSuffix(i, ".service")
 			logger.Debug("unit: %s", i)
-			template, err := sa.fs.Get("units/" + i)
+			template, _, err := sa.fs.Get("units/" + i)
 			defer template.Close()
 			if err != nil {
 				logger.Critical("template error , %s", err)
@@ -133,11 +133,12 @@ func (wh *WebHandler) AciImage(c *gin.Context) {
 	logger.Debug(c.Request.RequestURI)
 	AciName := c.Params.ByName("imageName")
 	logger.Debug(AciName)
-	fh, err := RocketACI.Get(AciName)
+	fh, size, err := RocketACI.Get(AciName)
 	if err != nil {
 		logger.Debug("Rocket file error : %s", err)
 		c.AbortWithStatus(404)
 	}
+	c.Writer.Header().Set("Content-Size", string(size))
 	io.Copy(c.Writer, fh)
 }
 

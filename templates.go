@@ -57,7 +57,7 @@ func (os *OperatingSystem) LoadTemplates(c *Config) (pass bool) {
 	//load all the templates for the operating sytem
 	newTemplates := template.New("")
 	for i, j := range templateList {
-		template, _ := c.fs.Get(path + "/" + j)
+		template, _, _ := c.fs.Get(path + "/" + j)
 		defer template.Close()
 		if strings.HasSuffix(j, ".tmpl") {
 			data, err := ioutil.ReadAll(template)
@@ -72,7 +72,7 @@ func (os *OperatingSystem) LoadTemplates(c *Config) (pass bool) {
 	os.templates = newTemplates
 	// check for operating system classes
 	classPath := "boot/" + os.Name + "/" + "classes.toml"
-	classFile, err := c.fs.Get(classPath)
+	classFile, _, err := c.fs.Get(classPath)
 	defer classFile.Close()
 	if err != nil {
 		logger.Critical("Class List fail, %s", err)
