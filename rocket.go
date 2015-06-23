@@ -67,7 +67,7 @@ func (sa *SpawnAPI) ScanUnits() {
 			data, err := ioutil.ReadAll(template)
 			_, err = NewTemplates.New(shortName).Parse(string(data))
 			if err != nil {
-				logger.Critical("template parse error , %s", err)
+				logger.Error("template parse error , %s", err)
 			}
 			sa.units[shortName] = "active" // TODO put unit info in here
 		}
@@ -106,14 +106,14 @@ func (wh *WebHandler) RocketHandler() {
 
 // UnitList : send the list of units as a JSON list
 func (wh *WebHandler) UnitList(c *gin.Context) {
-	logger.Critical("List Available Units")
+	logger.Notice("List Available Units")
 	c.IndentedJSON(200, TheSpawn.units)
 }
 
 // GetUnit : send an individual Unit file as text
 func (wh *WebHandler) GetUnit(c *gin.Context) {
 	UnitName := c.Params.ByName("name")
-	logger.Critical("Get Unit File : %s", UnitName)
+	logger.Notice("Get Unit File : %s", UnitName)
 	if TheSpawn.templates.Lookup(UnitName) == nil {
 		c.AbortWithStatus(404)
 		return
@@ -154,7 +154,7 @@ func (wh *WebHandler) Discovery(c *gin.Context) {
 		t := rktTmpl{}
 		t.BaseIP = wh.config.BaseIP
 		t.AciName = c.Params.ByName("name")
-		logger.Critical("Rocket file : %s", t.AciName)
+		logger.Notice("Rocket file : %s", t.AciName)
 		// random etags for the win
 		c.Header("ETag", time.Now().String())
 		err := tmpl.ExecuteTemplate(c.Writer, "rocket", t)
