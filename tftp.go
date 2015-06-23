@@ -27,7 +27,6 @@ func HandleRead(filename string) (r io.Reader, err error) {
 }
 
 // tftp server
-// TODO fix logging
 func tftpServer(conf *Config) {
 	localConf = conf
 	s := tftp.NewServer("", HandleRead, HandleWrite, logger)

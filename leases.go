@@ -112,7 +112,6 @@ func Load(name string) (ll LeaseList) {
 }
 
 //Save : write the leases to disk
-// TODO needs locking , perhaps a channel system for linear updates
 func (ll LeaseList) Save(name string) {
 	leaseLock.Lock()
 	enc, err := json.MarshalIndent(ll, "", " ")

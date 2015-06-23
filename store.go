@@ -157,7 +157,7 @@ func (s Store) GetFromIP(ip net.IP) (l *Lease, err error) {
 	return newl, err
 }
 
-// Release : no implimendesd
+// Release : not working
 func (s Store) Release(mac net.HardwareAddr) {
 	//TODO update lease to be active false
 }

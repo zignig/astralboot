@@ -72,11 +72,6 @@ func NewWebServer(c *Config, l *Store, level int) *WebHandler {
 	wh.router.GET("/config/:dist/:action", wh.Config)
 	// rocket handlers
 	wh.RocketHandler()
-	// TODO
-	// preseed / config
-	// post install
-	// finalise
-	// close
 	return wh
 }
 
@@ -96,7 +91,6 @@ type TemplateData struct {
 }
 
 // GenTemplateData : generate template data from a mac address
-// TODO and keep a cache so it is not regenerated every request
 func (wh *WebHandler) GenTemplateData(ip net.IP, dist string) *TemplateData {
 	td := &TemplateData{}
 	td.Config = wh.config

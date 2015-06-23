@@ -91,7 +91,6 @@ func GetConfig(path string) (c *Config) {
 	if c.Domain == "" {
 		c.Domain = "erf"
 	}
-	//TODO select file system from flag or config
 
 	var filesystem ROfs
 	if c.IPFS == true {
