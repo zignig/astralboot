@@ -1,0 +1,5 @@
+#!ipxe{{ $serverIP := .BaseIP }}
+
+kernel http://{{ $serverIP }}/image/debian/linux ramdisk_size=13746 root=/dev/ram  auto=true priority=critical preseed/url=http://{{ $serverIP}}/action/debian/preseed
+initrd http://{{ $serverIP }}/image/debian/initrd.gz
+boot
