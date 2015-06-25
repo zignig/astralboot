@@ -14,14 +14,13 @@ func main() {
 	var logLevel int
 	fmt.Println(*lowDebug, *medDebug, *highDebug)
 	if *lowDebug {
-		fmt.Println("DEBUG")
-		logLevel = 0
-	}
-	if *medDebug {
 		logLevel = 1
 	}
-	if *highDebug {
+	if *medDebug {
 		logLevel = 2
+	}
+	if *highDebug {
+		logLevel = 3
 	}
 	LogSetup(logLevel)
 	fmt.Println(banner)
