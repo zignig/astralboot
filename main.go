@@ -7,14 +7,28 @@ import (
 )
 
 func main() {
-	logFlag := flag.Int("v", 0, "logging level 0=critcal , 5=debug")
+	lowDebug := flag.Bool("v", false, "Notice and Above")
+	medDebug := flag.Bool("vv", false, "Info")
+	highDebug := flag.Bool("vvv", false, "Debug")
 	flag.Parse()
-	LogSetup(*logFlag)
+	var logLevel int
+	fmt.Println(*lowDebug, *medDebug, *highDebug)
+	if *lowDebug {
+		fmt.Println("DEBUG")
+		logLevel = 0
+	}
+	if *medDebug {
+		logLevel = 1
+	}
+	if *highDebug {
+		logLevel = 2
+	}
+	LogSetup(logLevel)
 	fmt.Println(banner)
 	logger.Notice("Starting Astralboot Server")
 	conf := GetConfig("config.toml")
 	logger.Notice("Using interface : %s", conf.Interf)
-	if *logFlag > 0 {
+	if logLevel > 0 {
 		logger.Notice("-- Implied Config Start --")
 		conf.PrintConfig()
 		logger.Notice("-- Implied Config Finish --")
@@ -26,7 +40,7 @@ func main() {
 	logger.Info("start dhcp")
 	go dhcpServer(conf, leases)
 	logger.Info("start web server")
-	wh := NewWebServer(conf, leases, *logFlag)
+	wh := NewWebServer(conf, leases, logLevel)
 	go wh.Run()
 	logger.Notice("Serving ...")
 	// goroutine spinner

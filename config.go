@@ -52,10 +52,12 @@ type Config struct {
 //GetConfig :  loads config and settings from ipfs ref or file system
 func GetConfig(path string) (c *Config) {
 	if _, err := toml.DecodeFile(path, &c); err != nil {
+		logger.Critical("Config Error %s", err)
 		logger.Critical("Config file %s does not exists", path)
 		logger.Critical("Starting Configurator")
 		c = &Config{}
-		Configurate.Run(c)
+		qt := c.Setup()
+		qt.Run(c)
 	}
 	// loading the refs from seperate file
 	re := &Refs{}

@@ -3,15 +3,8 @@ package main
 
 import (
 	"fmt"
+	"net"
 )
-
-var Configurate = &qTree{
-	title: "Configure Astralboot",
-	questions: []Asker{
-		&yesNoQuestion{text: "test question"},
-		&yesNoQuestion{text: "test question 2"},
-	},
-}
 
 type Asker interface {
 	Ask() (i interface{})
@@ -30,28 +23,80 @@ func (q *qTree) Run(c interface{}) {
 	}
 }
 
-// base question
-type q struct {
-	text     string
-	complete bool
-}
-
 // Yes or No question
 type yesNoQuestion struct {
-	q
-	text     string
-	detail   string
-	complete bool
-	val      bool
+	text  string
+	deflt bool
+	val   bool
 }
 
 func (q *yesNoQuestion) Ask() (v interface{}) {
-	fmt.Println(q.text)
-	fmt.Println("")
-	return true
+	header(q.text)
+	if q.deflt {
+		fmt.Print("(Y/n}>")
+	} else {
+		fmt.Print("(y/N}>")
+	}
+	var response string
+	_, err := fmt.Scanln(&response)
+	if len(response) == 0 {
+		fmt.Printf("Default answer : %v\n", q.deflt)
+		return q.deflt
+	}
+	if err != nil {
+		fmt.Println(len(response))
+		logger.Error("readline error %v", err)
+	}
+	fmt.Println(response)
+	okayResponses := []string{"y", "Y", "yes", "Yes", "YES"}
+	nokayResponses := []string{"n", "N", "no", "No", "NO"}
+	if containsString(okayResponses, response) {
+		return true
+	} else if containsString(nokayResponses, response) {
+		return false
+	} else {
+		fmt.Println("Please type yes or no and then press enter:")
+		return q.Ask()
+	}
 }
 
 // IP address
 type ipAddrQuestion struct {
-	q
+	text string
+	ip   string
+}
+
+func (q *ipAddrQuestion) Ask() (v interface{}) {
+	header(q.text)
+	var response string
+	_, err := fmt.Scanln(&response)
+	if err != nil {
+		fmt.Println(len(response))
+		logger.Error("readline error %v", err)
+	}
+	val := net.ParseIP(response)
+	if val == nil {
+		fmt.Println("Bad ip address")
+		return q.Ask()
+	}
+	fmt.Println(val)
+	return
+}
+
+//helper functions
+func containsString(slice []string, element string) bool {
+	return !(posString(slice, element) == -1)
+}
+
+func posString(slice []string, element string) int {
+	for index, elem := range slice {
+		if elem == element {
+			return index
+		}
+	}
+	return -1
+}
+
+func header(t string) {
+	fmt.Println(t)
 }
