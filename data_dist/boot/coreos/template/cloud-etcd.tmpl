@@ -17,16 +17,17 @@ coreos:
       command: start
     - name: fleet.service
       command: start
+# Spawn auto launch system
+{{ if .Config.Spawn }}
     - name: fleet.socket
       drop-ins:
         - name: 30-ListenStream.conf
           content: |
             [Socket]
-            ListenStream=9876
+            ListenStream=127.0.0.1:9876
             Service=fleet.service
             [Install]
             WantedBy=sockets.target
-{{ if .Config.Spawn }}
     - name: spawn_launch.service
       command: start
       content: |
@@ -42,7 +43,8 @@ write_files:
     content: |
       [Unit]
       Description=spawn service
-      Author=Me
       [Service]
-      ExecStart=/usr/bin/rkt --insecure-skip-verify run {{ .BaseIP }}/rocket/spawn
+      ExecStart=/usr/bin/rkt --insecure-skip-verify run --set-env SPAWN_SOURCE={{ .BaseIP }} {{ .BaseIP }}/rocket/spawn
+      [X-Fleet]
+      MachineMetadata=role=etcd
 {{ end }}
