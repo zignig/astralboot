@@ -100,7 +100,6 @@ func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 // UpdateClass : update class and activate
 func (s Store) UpdateClass(mac net.HardwareAddr, name string, class string) bool {
 	l := &Lease{}
-	logger.Critical("Update ", mac, " to active")
 	l, err := s.leases.Mac(mac)
 	if err != nil {
 		logger.Error("lease error %s", err)
@@ -109,6 +108,7 @@ func (s Store) UpdateClass(mac net.HardwareAddr, name string, class string) bool
 	l.Active = true
 	l.Distro = name
 	l.Class = class
+	logger.Critical("Update %v to class %s of %s", l.MAC, l.Class, l.Distro)
 	s.leases.Save(s.DBname)
 	return true
 }

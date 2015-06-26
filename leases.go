@@ -55,7 +55,6 @@ func (ll LeaseList) Mac(mac net.HardwareAddr) (l *Lease, err error) {
 
 //Free : returns an unused address
 func (ll LeaseList) Free(mac net.HardwareAddr) (l *Lease, err error) {
-	logger.Critical("%v leases", len(ll.Leases))
 	for _, i := range ll.Leases {
 		if (i.Active == false) && (i.Reserved == false) {
 			logger.Critical("New Lease %s for mac %s", i.IP, i.MAC)

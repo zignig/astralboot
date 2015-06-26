@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	tftp "github.com/whyrusleeping/go-tftp/server"
+	tftp "github.com/zignig/go-tftp/server"
 )
 
 var localConf *Config
@@ -30,7 +30,7 @@ func HandleRead(filename string) (r io.Reader, err error) {
 // TODO fix logging
 func tftpServer(conf *Config) {
 	localConf = conf
-	s := tftp.NewServer("", HandleRead, HandleWrite)
+	s := tftp.NewServer("", HandleRead, HandleWrite, logger)
 	e := s.Serve(":69")
 	if e != nil {
 		logger.Error("tftp error, %s", e)

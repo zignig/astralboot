@@ -141,7 +141,7 @@ func (wh *WebHandler) Config(c *gin.Context) {
 	td := wh.GenTemplateData(client, dist)
 	//logger.Info("Template Data : %v", td)
 	//logger.Info("Client ip is %s", client)
-	logger.Info("Perform %s from %s ", action, dist)
+	logger.Critical("Perform %s from %s on %s", action, dist, client)
 	//	logger.Info("Lease Info ", td.Lease)
 	if td.Lease.Class != "" {
 		logger.Info("Class %s", td.Lease.Class)
@@ -247,6 +247,7 @@ func (wh *WebHandler) Starter(c *gin.Context) {
 
 // Lister : select from the os list
 func (wh *WebHandler) Lister(c *gin.Context) {
+	logger.Critical("Select Machine type")
 	err := wh.templates.ExecuteTemplate(c.Writer, "list", wh.config)
 	if err != nil {
 		logger.Error("template error ", err)

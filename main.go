@@ -12,8 +12,8 @@ func main() {
 	LogSetup(*logFlag)
 	fmt.Println(banner)
 	logger.Critical("Starting Astralboot Server")
-	logger.Critical("Use -v=0-4 for extra logging")
 	conf := GetConfig("config.toml")
+	logger.Critical("Using interface %s", conf.Interf)
 	if *logFlag > 0 {
 		logger.Critical("-- Implied Config Start --")
 		conf.PrintConfig()

@@ -71,6 +71,7 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		// initial hardware boot
 		case "iPXE":
 			logger.Info("iPXE request")
+			logger.Critical("iPXE from %s on %v", TheLease.MAC, TheLease.IP)
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP.To4(), net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			rp.SetSIAddr(h.ip)
