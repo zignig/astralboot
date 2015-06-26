@@ -106,13 +106,14 @@ func (wh *WebHandler) RocketHandler() {
 
 // UnitList : send the list of units as a JSON list
 func (wh *WebHandler) UnitList(c *gin.Context) {
+	logger.Critical("List Available Units")
 	c.IndentedJSON(200, TheSpawn.units)
 }
 
 // GetUnit : send an individual Unit file as text
 func (wh *WebHandler) GetUnit(c *gin.Context) {
-	// TODO hand list out of current available unit files
 	UnitName := c.Params.ByName("name")
+	logger.Critical("Get Unit File : %s", UnitName)
 	if TheSpawn.templates.Lookup(UnitName) == nil {
 		c.AbortWithStatus(404)
 		return
@@ -153,6 +154,7 @@ func (wh *WebHandler) Discovery(c *gin.Context) {
 		t := rktTmpl{}
 		t.BaseIP = wh.config.BaseIP
 		t.AciName = c.Params.ByName("name")
+		logger.Critical("Rocket file : %s", t.AciName)
 		// random etags for the win
 		c.Header("ETag", time.Now().String())
 		err := tmpl.ExecuteTemplate(c.Writer, "rocket", t)
