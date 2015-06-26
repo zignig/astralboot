@@ -138,7 +138,7 @@ func (wh *WebHandler) AciImage(c *gin.Context) {
 	logger.Debug(AciName)
 	fh, size, err := RocketACI.Get(AciName)
 	if err != nil {
-		logger.Debug("Rocket file error : %s", err)
+		logger.Error("Rocket file error : %s", err)
 		c.AbortWithStatus(404)
 	}
 	c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))

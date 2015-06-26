@@ -11,13 +11,13 @@ func main() {
 	flag.Parse()
 	LogSetup(*logFlag)
 	fmt.Println(banner)
-	logger.Critical("Starting Astralboot Server")
+	logger.Notice("Starting Astralboot Server")
 	conf := GetConfig("config.toml")
-	logger.Critical("Using interface %s", conf.Interf)
+	logger.Notice("Using interface : %s", conf.Interf)
 	if *logFlag > 0 {
-		logger.Critical("-- Implied Config Start --")
+		logger.Notice("-- Implied Config Start --")
 		conf.PrintConfig()
-		logger.Critical("-- Implied Config Finish --")
+		logger.Notice("-- Implied Config Finish --")
 	}
 	// leases json database
 	leases := NewStore(conf)
@@ -28,7 +28,7 @@ func main() {
 	logger.Info("start web server")
 	wh := NewWebServer(conf, leases, *logFlag)
 	go wh.Run()
-	logger.Critical("Serving ...")
+	logger.Notice("Serving ...")
 	// goroutine spinner
 	c := make(chan int, 1)
 	<-c

@@ -9,7 +9,7 @@ import (
 var logger = logging.MustGetLogger("example")
 
 var format = logging.MustStringFormatter(
-	"%{color}%{time:15:04:05.000} %{shortfunc} > %{level:.7s} %{id:03x}%{color:reset} %{message}",
+	"%{color}%{time:0102 15:04:05.000} %{shortfunc:15s} > %{level:.7s} %{id:03x}%{color:reset} %{message}",
 )
 
 //LogSetup : set up the logging for information output
@@ -20,12 +20,10 @@ func LogSetup(level int) {
 	backend1Leveled := logging.AddModuleLevel(backend1Formatter)
 	switch level {
 	case 0:
-		backend1Leveled.SetLevel(logging.CRITICAL, "example")
+		backend1Leveled.SetLevel(logging.NOTICE, "example")
 	case 1:
-		backend1Leveled.SetLevel(logging.ERROR, "example")
-	case 2:
 		backend1Leveled.SetLevel(logging.INFO, "example")
-	case 3:
+	case 2:
 		backend1Leveled.SetLevel(logging.DEBUG, "example")
 	}
 	logging.SetBackend(backend1Leveled)

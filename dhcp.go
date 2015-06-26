@@ -70,15 +70,14 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		switch userClass {
 		// initial hardware boot
 		case "iPXE":
-			logger.Info("iPXE request")
-			logger.Critical("iPXE from %s on %v", TheLease.MAC, TheLease.IP)
+			logger.Notice("iPXE from %s on %v", TheLease.MAC, TheLease.IP)
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP.To4(), net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			rp.SetSIAddr(h.ip)
 			return rp
 		// scondary iPXE boot from tftp server
 		case "skinny":
-			logger.Critical("Booting Machine %s", TheLease.Name)
+			logger.Notice("Booting Machine %s", TheLease.Name)
 			if TheLease.Active == true {
 				skinnyOptions[dhcp.OptionHostName] = []byte(TheLease.Name)
 				skinnyOptions[dhcp.OptionBootFileName] = []byte("http://" + h.ip.String() + "/boot/" + TheLease.Distro + "/${net0/mac}")

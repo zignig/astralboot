@@ -4,6 +4,7 @@ package main
 import (
 	"github.com/BurntSushi/toml"
 	"io/ioutil"
+	"os"
 	"strings"
 	"text/template"
 )
@@ -11,16 +12,19 @@ import (
 // dealing with os layouts and templates
 
 // OSListGet :  get a listing of the operating systems
-func (c *Config) OSListGet() (os map[string]*OperatingSystem) {
-	os = make(map[string]*OperatingSystem)
-	list, _ := c.fs.List("boot")
+func (c *Config) OSListGet() (osm map[string]*OperatingSystem) {
+	osm = make(map[string]*OperatingSystem)
+	list, err := c.fs.List("boot")
+	if err != nil {
+		logger.Error("OS failure %s", err)
+		os.Exit(1)
+	}
 	logger.Info("OS listing ", list)
 	for _, i := range list {
-		logger.Critical("Adding OS %s", i)
-		logger.Info(" ----- " + i + "-------")
+		logger.Notice("Adding OS %s", i)
 		tmpOS := &OperatingSystem{Name: i, Description: i}
 		if tmpOS.CheckAndLoad(c) == true {
-			os[i] = tmpOS
+			osm[i] = tmpOS
 		}
 	}
 	return
@@ -86,7 +90,7 @@ func (os *OperatingSystem) LoadTemplates(c *Config) (pass bool) {
 	// attach to the os list
 	os.Classes = cl.Classes
 	for _, i := range os.Classes {
-		logger.Critical("Class %s", i)
+		logger.Notice("Class %s", i)
 	}
 	logger.Debug("Class File : %s", cl)
 	os.HasClasses = true

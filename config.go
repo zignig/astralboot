@@ -68,12 +68,12 @@ func GetConfig(path string) (c *Config) {
 	}
 	interf, err := net.InterfaceByName(c.Interf)
 	if err != nil {
-		logger.Critical("Interface error ", err)
+		logger.Error("Interface error ", err)
 	}
 	//TODO fix interface checks
 	addressList, _ := interf.Addrs()
 	serverAddress, ipnet, _ := net.ParseCIDR(addressList[0].String())
-	logger.Critical("Server Address  : %s", serverAddress)
+	logger.Notice("Server Address  : %s", serverAddress)
 	c.BaseIP = serverAddress
 	b := ipnet.Mask
 	c.Subnet = net.IP{b[0], b[1], b[2], b[3]}
@@ -95,6 +95,7 @@ func GetConfig(path string) (c *Config) {
 
 	var filesystem ROfs
 	if c.IPFS == true {
+		logger.Critical("Using IPFS for boot files")
 		filesystem = &IPfsfs{c.Refs.Boot}
 	} else {
 		filesystem = &Diskfs{"./data"}

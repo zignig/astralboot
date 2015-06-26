@@ -114,6 +114,7 @@ func Load(name string) (ll LeaseList) {
 //Save : write the leases to disk
 // TODO needs locking , perhaps a channel system for linear updates
 func (ll LeaseList) Save(name string) {
+	leaseLock.Lock()
 	enc, err := json.MarshalIndent(ll, "", " ")
 	if err != nil {
 		logger.Critical("Lease Marshal fail , %v", err)
@@ -123,4 +124,5 @@ func (ll LeaseList) Save(name string) {
 		logger.Critical("Lease save fail , %v", err)
 	}
 	logger.Info("Leases Saved")
+	leaseLock.Unlock()
 }
