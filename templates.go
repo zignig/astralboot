@@ -2,7 +2,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/BurntSushi/toml"
 	"io/ioutil"
 	"strings"
@@ -64,9 +63,9 @@ func (os *OperatingSystem) LoadTemplates(c *Config) (pass bool) {
 			name := strings.TrimSuffix(j, ".tmpl")
 			_, err = newTemplates.New(name).Parse(string(data))
 			if err != nil {
-				fmt.Println("template ", name, " -> ", string(data), err)
+				logger.Error("template ", name, " -> ", string(data), err)
 			}
-			logger.Critical("#%d : %s", i, j)
+			logger.Info("#%d : %s", i, j)
 		}
 	}
 	os.templates = newTemplates
@@ -75,16 +74,14 @@ func (os *OperatingSystem) LoadTemplates(c *Config) (pass bool) {
 	classFile, _, err := c.fs.Get(classPath)
 	defer classFile.Close()
 	if err != nil {
-		logger.Critical("Class List fail, %s", err)
+		logger.Info("Class List fail, %s", err)
 		// still returns true , so the OS is added
-		// TODO class loader
 		return true
 	}
 	// load the clases file
 	classString, _ := ioutil.ReadAll(classFile)
 	cl := &classes{}
 	_, err = toml.Decode(string(classString), &cl)
-	fmt.Println(cl, err)
 	// attach to the os list
 	os.Classes = cl.Classes
 	logger.Debug("Class File : %s", cl)

@@ -3,7 +3,6 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"net"
 	"text/template"
@@ -61,7 +60,6 @@ func GetConfig(path string) (c *Config) {
 	if _, err := toml.DecodeFile("refs.toml", &re); err != nil {
 		logger.Critical("Reference file does not exists")
 	}
-	fmt.Println(re)
 	c.Refs = re
 	// bind the cache (not exported)
 	// Add items from system not in config file
@@ -95,11 +93,8 @@ func GetConfig(path string) (c *Config) {
 	}
 	//TODO select file system from flag or config
 
-	fileFlag := flag.Bool("l", false, "Use local file sytem")
 	var filesystem ROfs
-	flag.Parse()
-	if *fileFlag == true || c.Local == true {
-		c.Local = true
+	if c.Local == true {
 		filesystem = &Diskfs{"./data"}
 	} else {
 		filesystem = &IPfsfs{c.Refs.Boot}

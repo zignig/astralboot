@@ -2,8 +2,6 @@
 package main
 
 import (
-	"fmt"
-
 	dhcp "github.com/krolaw/dhcp4"
 
 	"net"
@@ -79,7 +77,7 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 			return rp
 		// scondary iPXE boot from tftp server
 		case "skinny":
-			logger.Info("skinny request")
+			logger.Critical("Booting Machine %s", TheLease.Name)
 			if TheLease.Active == true {
 				skinnyOptions[dhcp.OptionHostName] = []byte(TheLease.Name)
 				skinnyOptions[dhcp.OptionBootFileName] = []byte("http://" + h.ip.String() + "/boot/" + TheLease.Distro + "/${net0/mac}")
@@ -97,10 +95,10 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 			return rp
 		}
 	case dhcp.Release:
-		fmt.Println("Release")
+		logger.Debug("Release")
 		break
 	case dhcp.Decline:
-		fmt.Println("Decline")
+		logger.Debug("Decline")
 		break
 	}
 	return nil

@@ -44,7 +44,6 @@ func (s Store) Build(c *Config) {
 	leaseList := NetList(c.BaseIP, c.Subnet)
 	ll := LeaseList{}
 	for count, i := range leaseList {
-		//fmt.Println("add a lease for ", i)
 		l := &Lease{}
 		l.ID = int64(count)
 		l.Created = time.Now()
@@ -89,7 +88,7 @@ func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 	logger.Info("Update ", mac, " to active")
 	l, err := s.leases.Mac(mac)
 	if err != nil {
-		fmt.Printf("lease error %s", err)
+		logger.Error("lease error %s", err)
 		return false
 	}
 	l.Active = true
@@ -101,10 +100,10 @@ func (s Store) UpdateActive(mac net.HardwareAddr, name string) bool {
 // UpdateClass : update class and activate
 func (s Store) UpdateClass(mac net.HardwareAddr, name string, class string) bool {
 	l := &Lease{}
-	logger.Info("Update ", mac, " to active")
+	logger.Critical("Update ", mac, " to active")
 	l, err := s.leases.Mac(mac)
 	if err != nil {
-		fmt.Printf("lease error %s", err)
+		logger.Error("lease error %s", err)
 		return false
 	}
 	l.Active = true
@@ -119,7 +118,7 @@ func (s Store) CheckLease(mac net.HardwareAddr) bool {
 	l := &Lease{}
 	l, err := s.leases.Mac(mac)
 	if err != nil {
-		fmt.Printf("lease error %s", err)
+		logger.Error("lease error %s", err)
 		return false
 	}
 	if &l != nil {
@@ -133,7 +132,7 @@ func (s Store) GetIP(mac net.HardwareAddr) (ip net.IP, err error) {
 	l := &Lease{}
 	l, err = s.leases.Mac(mac)
 	if err != nil {
-		fmt.Printf("lease error %s", err)
+		logger.Error("lease error %s", err)
 		return nil, err
 	}
 	ip = net.ParseIP(l.IP)
@@ -145,7 +144,7 @@ func (s Store) GetIP(mac net.HardwareAddr) (ip net.IP, err error) {
 func (s Store) DistLease(dist string) (ll map[string]*LeaseList) {
 	ll, err := s.leases.GetDist(dist)
 	if err != nil {
-		logger.Debug("Lease search error %s ", err)
+		logger.Error("Lease search error %s ", err)
 		return
 	}
 	return

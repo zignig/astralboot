@@ -24,7 +24,7 @@ type WebHandler struct {
 func NewWebServer(c *Config, l *Store) *WebHandler {
 	wh := &WebHandler{}
 	// create the router
-	//gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode)
 	wh.router = gin.Default()
 	// bind the lease db
 	wh.store = l
@@ -170,7 +170,7 @@ func (wh *WebHandler) Images(c *gin.Context) {
 	fh, size, err := wh.fs.Get("boot/" + dist + "/images/" + path)
 	defer fh.Close()
 	if err != nil {
-		fmt.Println("web error ", err)
+		logger.Error("web error ", err)
 		return
 	}
 	c.Writer.WriteHeader(200)
@@ -186,7 +186,7 @@ func (wh *WebHandler) Chooser(c *gin.Context) {
 	logger.Info("Choosing os for %s on %s", dist, mac)
 	macString, err := net.ParseMAC(mac)
 	if err != nil {
-		fmt.Println("mac update error ", err)
+		logger.Error("mac update error %s", err)
 		return
 	}
 	wh.store.UpdateActive(macString, dist)
@@ -209,7 +209,7 @@ func (wh *WebHandler) ClassChooser(c *gin.Context) {
 	m["classes"] = wh.config.OSList[dist].Classes
 	err := wh.templates.ExecuteTemplate(c.Writer, "class", m)
 	if err != nil {
-		fmt.Println("class template error ", err)
+		logger.Error("class template error ", err)
 	}
 }
 
@@ -221,7 +221,7 @@ func (wh *WebHandler) ClassSet(c *gin.Context) {
 	// set the class of the lease
 	macString, err := net.ParseMAC(mac)
 	if err != nil {
-		fmt.Println("mac update error ", err)
+		logger.Error("mac update error ", err)
 		return
 	}
 	wh.store.UpdateClass(macString, dist, class)
@@ -240,7 +240,7 @@ func (wh *WebHandler) Starter(c *gin.Context) {
 func (wh *WebHandler) Lister(c *gin.Context) {
 	err := wh.templates.ExecuteTemplate(c.Writer, "list", wh.config)
 	if err != nil {
-		fmt.Println("template error ", err)
+		logger.Error("template error ", err)
 	}
 }
 

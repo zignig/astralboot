@@ -1,8 +1,11 @@
 // Combined boot server
 package main
 
+import "fmt"
+
 func main() {
 	LogSetup()
+	fmt.Println(banner)
 	logger.Critical("STARTING DHCP SERVER")
 	conf := GetConfig("config.toml")
 	logger.Critical("-- Implied Config Start --")
@@ -22,3 +25,9 @@ func main() {
 	c := make(chan int, 1)
 	<-c
 }
+
+const banner = `
+┏━┓┏━┓╺┳╸┏━┓┏━┓╻  ┏┓ ┏━┓┏━┓╺┳╸
+┣━┫┗━┓ ┃ ┣┳┛┣━┫┃  ┣┻┓┃ ┃┃ ┃ ┃
+╹ ╹┗━┛ ╹ ╹┗╸╹ ╹┗━╸┗━┛┗━┛┗━┛ ╹
+`
