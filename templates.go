@@ -16,6 +16,7 @@ func (c *Config) OSListGet() (os map[string]*OperatingSystem) {
 	list, _ := c.fs.List("boot")
 	logger.Info("OS listing ", list)
 	for _, i := range list {
+		logger.Critical("Adding OS %s", i)
 		logger.Info(" ----- " + i + "-------")
 		tmpOS := &OperatingSystem{Name: i, Description: i}
 		if tmpOS.CheckAndLoad(c) == true {
@@ -84,6 +85,9 @@ func (os *OperatingSystem) LoadTemplates(c *Config) (pass bool) {
 	_, err = toml.Decode(string(classString), &cl)
 	// attach to the os list
 	os.Classes = cl.Classes
+	for _, i := range os.Classes {
+		logger.Critical("Class %s", i)
+	}
 	logger.Debug("Class File : %s", cl)
 	os.HasClasses = true
 	return true
