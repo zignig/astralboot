@@ -42,7 +42,7 @@ type Config struct {
 	DNSServer net.IP
 	Domain    string
 	DBname    string
-	Local     bool
+	IPFS      bool
 	Refs      *Refs // ipfs references
 	// not exported generated config parts
 	fs     ROfs
@@ -53,7 +53,7 @@ type Config struct {
 func GetConfig(path string) (c *Config) {
 	if _, err := toml.DecodeFile(path, &c); err != nil {
 		logger.Critical("Config file does not exists,create config")
-		return
+		c = &Config{}
 	}
 	// loading the refs from seperate file
 	re := &Refs{}
@@ -64,7 +64,7 @@ func GetConfig(path string) (c *Config) {
 	// bind the cache (not exported)
 	// Add items from system not in config file
 	if c.Interf == "" {
-		c.Interf = "eth0"
+		c.Interf = "eth1"
 	}
 	interf, err := net.InterfaceByName(c.Interf)
 	if err != nil {
@@ -94,10 +94,10 @@ func GetConfig(path string) (c *Config) {
 	//TODO select file system from flag or config
 
 	var filesystem ROfs
-	if c.Local == true {
-		filesystem = &Diskfs{"./data"}
-	} else {
+	if c.IPFS == true {
 		filesystem = &IPfsfs{c.Refs.Boot}
+	} else {
+		filesystem = &Diskfs{"./data"}
 	}
 	c.fs = filesystem
 

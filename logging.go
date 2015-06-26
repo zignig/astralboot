@@ -2,7 +2,6 @@
 package main
 
 import (
-	"flag"
 	"github.com/op/go-logging"
 	"os"
 )
@@ -14,14 +13,12 @@ var format = logging.MustStringFormatter(
 )
 
 //LogSetup : set up the logging for information output
-func LogSetup() {
+func LogSetup(level int) {
 
-	logFlag := flag.Int("v", 0, "Set Logging level")
-	flag.Parse()
 	backend1 := logging.NewLogBackend(os.Stderr, "", 0)
 	backend1Formatter := logging.NewBackendFormatter(backend1, format)
 	backend1Leveled := logging.AddModuleLevel(backend1Formatter)
-	switch *logFlag {
+	switch level {
 	case 0:
 		backend1Leveled.SetLevel(logging.CRITICAL, "example")
 	case 1:

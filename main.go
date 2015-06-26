@@ -1,27 +1,35 @@
 // Combined boot server
 package main
 
-import "fmt"
+import (
+	"flag"
+	"fmt"
+)
 
 func main() {
-	LogSetup()
+	logFlag := flag.Int("v", 0, "logging level 0=critcal , 5=debug")
+	flag.Parse()
+	LogSetup(*logFlag)
 	fmt.Println(banner)
-	logger.Critical("STARTING DHCP SERVER")
+	logger.Critical("Starting Astralboot Server")
+	logger.Critical("Use -v=0-4 for extra logging")
 	conf := GetConfig("config.toml")
-	logger.Critical("-- Implied Config Start --")
-	conf.PrintConfig()
-	logger.Critical("-- Implied Config Finish --")
-	// leases sql database
+	if *logFlag > 0 {
+		logger.Critical("-- Implied Config Start --")
+		conf.PrintConfig()
+		logger.Critical("-- Implied Config Finish --")
+	}
+	// leases json database
 	leases := NewStore(conf)
 	logger.Info("starting tftp")
 	go tftpServer(conf)
 	logger.Info("start dhcp")
 	go dhcpServer(conf, leases)
 	logger.Info("start web server")
-	wh := NewWebServer(conf, leases)
+	wh := NewWebServer(conf, leases, *logFlag)
 	go wh.Run()
-	logger.Info("Serving ...")
-	// gorotiune spinner
+	logger.Critical("Serving ...")
+	// goroutine spinner
 	c := make(chan int, 1)
 	<-c
 }
@@ -30,4 +38,5 @@ const banner = `
 ┏━┓┏━┓╺┳╸┏━┓┏━┓╻  ┏┓ ┏━┓┏━┓╺┳╸
 ┣━┫┗━┓ ┃ ┣┳┛┣━┫┃  ┣┻┓┃ ┃┃ ┃ ┃
 ╹ ╹┗━┛ ╹ ╹┗╸╹ ╹┗━╸┗━┛┗━┛┗━┛ ╹
+https://github.com/zignig/astralboot
 `

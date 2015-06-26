@@ -50,6 +50,7 @@ func (sa *SpawnAPI) ScanUnits() {
 	unitlist, err := sa.fs.List("units")
 	if err != nil {
 		logger.Error("Unit scan error , %v", err)
+		return
 	}
 	// build the templates
 	NewTemplates := template.New("")
@@ -79,10 +80,10 @@ func (sa *SpawnAPI) ScanUnits() {
 func (wh *WebHandler) RocketHandler() {
 	rocketRef := wh.config.Refs.Rocket
 	var fs ROfs
-	if (rocketRef == "") || (wh.config.Local == true) {
-		fs = &Diskfs{"./rocket"}
-	} else {
+	if wh.config.IPFS == true {
 		fs = &IPfsfs{rocketRef}
+	} else {
+		fs = &Diskfs{"./rocket"}
 	}
 	RocketACI = fs
 

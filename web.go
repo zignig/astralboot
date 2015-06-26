@@ -21,11 +21,20 @@ type WebHandler struct {
 }
 
 // NewWebServer : create and configure a new web server
-func NewWebServer(c *Config, l *Store) *WebHandler {
+func NewWebServer(c *Config, l *Store, level int) *WebHandler {
 	wh := &WebHandler{}
 	// create the router
-	gin.SetMode(gin.ReleaseMode)
-	wh.router = gin.Default()
+	if level == 0 {
+		gin.SetMode(gin.ReleaseMode)
+		wh.router = gin.New()
+	}
+	if level == 1 {
+		gin.SetMode(gin.ReleaseMode)
+		wh.router = gin.Default()
+	}
+	if level > 1 {
+		wh.router = gin.Default()
+	}
 	// bind the lease db
 	wh.store = l
 	// bind the config
