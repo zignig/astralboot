@@ -29,6 +29,7 @@ type Lease struct {
 	Class    string    // sub class of the machine
 	Created  time.Time // when the machine is created
 	// add more stuff
+	pending bool
 }
 
 // Lease List functions
@@ -56,8 +57,9 @@ func (ll LeaseList) Mac(mac net.HardwareAddr) (l *Lease, err error) {
 //Free : returns an unused address
 func (ll LeaseList) Free(mac net.HardwareAddr) (l *Lease, err error) {
 	for _, i := range ll.Leases {
-		if (i.Active == false) && (i.Reserved == false) {
+		if (i.Active == false) && (i.pending == false) && (i.Reserved == false) {
 			logger.Critical("New Lease %s for mac %s", i.IP, i.MAC)
+			i.pending = true
 			return i, err
 		}
 	}
