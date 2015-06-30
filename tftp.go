@@ -8,12 +8,14 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"sync"
 )
 
 var localConf *Config
 
 // store the tftp files in ram
 var storage map[string][]byte
+var storageLock sync.Mutex
 
 // HandleWrite : writing is disabled in this service
 func HandleWrite(filename string) (w io.Writer, err error) {
@@ -26,6 +28,7 @@ func getFile(filename string) (r io.Reader, err error) {
 	_, ok := storage[filename]
 	data := []byte{}
 	if !ok {
+		storageLock.Lock()
 		logger.Notice("tftp cache loading %s", filename)
 		r, _, err = localConf.fs.Get("/tftp/" + filename)
 		data, err := ioutil.ReadAll(r)
@@ -34,6 +37,7 @@ func getFile(filename string) (r io.Reader, err error) {
 			err = errors.New("Fail")
 			return nil, err
 		}
+		storageLock.Unlock()
 		return bytes.NewBuffer(data), err
 	}
 	data = storage[filename]
