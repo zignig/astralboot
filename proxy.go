@@ -22,7 +22,7 @@ type IPfsfs struct {
 }
 
 //Req : base request for ipfs access
-func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, err error) {
+func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, size int64, err error) {
 	u := url.URL{}
 	u.Scheme = "http"
 	u.Host = ipfsHost
@@ -36,18 +36,19 @@ func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, err error) 
 	//TODO need to parse and return http status
 	//logger.Debug(u.String())
 	resp, err = http.Get(u.String())
+	size = resp.ContentLength
 	if resp.StatusCode != 200 {
-		return resp, errors.New(resp.Status)
+		return resp, 0, errors.New(resp.Status)
 	}
 	if err != nil {
-		return resp, err
+		return resp, 0, err
 	}
-	return resp, err
+	return resp, size, err
 }
 
 //Ls :  Get the file listing ( json blob )
 func (fs *IPfsfs) Ls(name string) (data []byte, err error) {
-	htr, err := fs.Req("ls", fs.base+"/"+name)
+	htr, _, err := fs.Req("ls", fs.base+"/"+name)
 	if err != nil {
 		return data, err
 	}
@@ -57,7 +58,7 @@ func (fs *IPfsfs) Ls(name string) (data []byte, err error) {
 
 //Get : get a file out of ipfs ( ROfs interface )
 func (fs *IPfsfs) Get(s string) (f io.ReadCloser, size int64, err error) {
-	data, err := fs.Req("cat", fs.base+"/"+s)
+	data, size, err := fs.Req("cat", fs.base+"/"+s)
 	return data.Body, size, err
 }
 

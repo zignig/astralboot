@@ -6,10 +6,10 @@ import (
 	"os"
 )
 
-var logger = logging.MustGetLogger("example")
+var logger = logging.MustGetLogger("astralboot")
 
 var format = logging.MustStringFormatter(
-	"%{color}%{time:0102 15:04:05.000} %{shortfunc:15s} > %{level:.7s} %{id:03x}%{color:reset} %{message}",
+	"%{color}%{time:0102 15:04:05.000}  %{shortfunc:13s} %{level:7s} %{id:03x}%{color:reset} %{message}",
 )
 
 //LogSetup : set up the logging for information output
@@ -20,11 +20,11 @@ func LogSetup(level int) {
 	backend1Leveled := logging.AddModuleLevel(backend1Formatter)
 	switch level {
 	case 0:
-		backend1Leveled.SetLevel(logging.NOTICE, "example")
+		backend1Leveled.SetLevel(logging.NOTICE, "astralboot")
 	case 1:
-		backend1Leveled.SetLevel(logging.INFO, "example")
+		backend1Leveled.SetLevel(logging.INFO, "astralboot")
 	case 2:
-		backend1Leveled.SetLevel(logging.DEBUG, "example")
+		backend1Leveled.SetLevel(logging.DEBUG, "astralboot")
 	}
 	logging.SetBackend(backend1Leveled)
 }
