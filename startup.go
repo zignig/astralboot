@@ -28,16 +28,18 @@ func (c *Config) Setup() {
 	if runExtra {
 		serverIP := getAddr(c.Interf)
 		c.DNSServer = ipAddrQuestion{text: "IP address for a dns server", ip: serverIP}.Ask()
-		c.Gateway = ipAddrQuestion{text: "IP address for the gateway for dhcp clients", ip: serverIP}.Ask()
+		c.Gateway = ipAddrQuestion{text: "IP address of the gateway for dhcp clients", ip: serverIP}.Ask()
 	}
 	slug(finishUP)
 	c.PrintConfig()
-	saveConfig := yesNoQuestion{text: "Save Config", deflt: false}.Ask()
+	saveConfig := yesNoQuestion{text: "Save Config", deflt: true}.Ask()
 	if saveConfig {
 		c.Save()
 	} else {
 		logger.Fatal("Configuration Failed")
 	}
+	slug(thanks)
+	slug(banner)
 }
 
 func getInterf() (in map[string]string) {
@@ -80,4 +82,9 @@ const enableSpawn = `Spawn is a coreos bootstrapper that talks to fleetd and aut
 The source code is included in spawn directory.`
 
 const extraNetwork = `Edit the DNS server and gateway ip addresses? these will default to this server if not specified.`
-const finishUP = `This is the config setup so far`
+const finishUP = `This is the config setup so far
+`
+const thanks = `Thanks for trying Astral boot ! :)
+If you have an patches / issues / flames please participate at https://github.com/zignig/astralboot
+
+`
