@@ -51,25 +51,26 @@ Testing so far has been done on a virtual machine with two network interfaces, o
 This machine will probably need to have masquerading setup , this is not needed for astral boot , but is for the machines to access the internet.
 
 enable forwarding 
-
->echo 1 > /proc/sys/net/ipv4/ip_forward
-
+```sh
+echo 1 > /proc/sys/net/ipv4/ip_forward
+```
 make it stick 
-
->edit /etc/sysctl.conf  and change  net.ipv4.ip_forward = 1
-
+```
+```sh
+edit /etc/sysctl.conf  and change  net.ipv4.ip_forward = 1
+```
 change the firewall 
-
->/sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-
+```sh
+/sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+```
 The test machines to be bootstrapped have one network interface attached to isolated VM network.
 
 Once you have the astral boot binary built, edit the config.toml file for interfaces on your virtual machines.
 
 The default hashes for booting are included in the git repository , put them into place by running.
-
-> cp refs.toml.dist refs.toml
-
+```sh
+cp refs.toml.dist refs.toml
+```
 a minimal config is
 
 >interface = "eth1"
@@ -111,9 +112,9 @@ Developing boot services, To develop modified boot services it is possible to se
 Downloading the files can be done with the following ipfs commands
 
 In the astralboot folder : 
-
->ipfs get -o=data “hash from the refs.toml file”
-
+```sh
+ipfs get -o=data “hash from the refs.toml file”
+```
 then run astralboot with a -l ( l for larry ) flag an it will use the local file system.
 
 # Development
@@ -122,10 +123,9 @@ all comments, patches and pull requests welcome
 
 # TODO 
 
-1. Better templating of preseed and cloudconfig
+1. Better templating of preseed 
 2. Add more operating systems
-3. Have subclasses on each operating system.
-4. Add DNS server 
-5. More stuff
+3. Add DNS server 
+4. More stuff
 
 
