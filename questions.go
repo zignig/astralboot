@@ -14,7 +14,7 @@ type yesNoQuestion struct {
 	val   bool
 }
 
-func (q *yesNoQuestion) Ask() (b bool) {
+func (q yesNoQuestion) Ask() (b bool) {
 	header(q.text)
 	if q.deflt {
 		fmt.Print("(Y/n)>")
@@ -24,7 +24,6 @@ func (q *yesNoQuestion) Ask() (b bool) {
 	var response string
 	_, err := fmt.Scanln(&response)
 	if len(response) == 0 {
-		fmt.Printf("Default answer : %v\n", q.deflt)
 		return q.deflt
 	}
 	if err != nil {
@@ -47,23 +46,25 @@ func (q *yesNoQuestion) Ask() (b bool) {
 // IP address
 type ipAddrQuestion struct {
 	text string
-	ip   string
+	ip   net.IP
 }
 
-func (q *ipAddrQuestion) Ask() (addr net.IPAddr) {
+func (q ipAddrQuestion) Ask() (addr net.IP) {
 	header(q.text)
+	fmt.Printf("%s>", q.ip)
 	var response string
 	_, err := fmt.Scanln(&response)
 	if err != nil {
-		fmt.Println(len(response))
+		if (len(response) == 0) && (q.ip != nil) {
+			return q.ip
+		}
 		logger.Error("readline error %v", err)
 	}
-	val := net.ParseIP(response)
-	if val == nil {
+	addr = net.ParseIP(response)
+	if addr == nil {
 		fmt.Println("Bad ip address")
 		return q.Ask()
 	}
-	fmt.Println(val)
 	return
 }
 
@@ -73,7 +74,7 @@ type listQuestion struct {
 	list map[string]string
 }
 
-func (q *listQuestion) Ask() (response string) {
+func (q listQuestion) Ask() (response string) {
 	header(q.text)
 	counter := 0
 	value := 0
@@ -95,7 +96,7 @@ func (q *listQuestion) Ask() (response string) {
 		fmt.Println("Bad Format")
 		q.Ask()
 	}
-	if (value >= 0) && (value <= len(q.list)) {
+	if (value >= 0) && (value < len(q.list)) {
 		return asList[value]
 	} else {
 		fmt.Println("Out of range")
@@ -118,8 +119,12 @@ func posString(slice []string, element string) int {
 	return -1
 }
 
+func slug(s string) {
+	fmt.Println()
+	fmt.Println(s)
+}
+
 func header(t string) {
 	fmt.Println()
 	fmt.Println(t)
-	fmt.Println()
 }

@@ -115,7 +115,10 @@ func GetConfig(path string) (c *Config) {
 func (c *Config) PrintConfig() {
 	buf := new(bytes.Buffer)
 	err := toml.NewEncoder(buf).Encode(c)
-	fmt.Println(buf.String(), err)
+	if err != nil {
+		logger.Fatal("Config Encode error %v", err)
+	}
+	fmt.Println(buf.String())
 }
 
 // Save to file

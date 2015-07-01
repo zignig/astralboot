@@ -9,17 +9,35 @@ import (
 // functions in questions.go
 
 func (c *Config) Setup() {
+	slug(preamble)
 	interfaceList := getInterf()
-	interfaceQuestion := &listQuestion{text: "Select Interface", list: interfaceList}
-	c.Interf = interfaceQuestion.Ask()
-
-	enableIPFS := &yesNoQuestion{text: "Enable IPFS source", deflt: false}
-	c.IPFS = enableIPFS.Ask()
-	enableSpawn := &yesNoQuestion{text: "Enable Spawn", deflt: true}
-	c.Spawn = enableSpawn.Ask()
-	//		&ipAddrQuestion{text: "IP address", ip: "test"},
-	c.Domain = ""
-	c.Save()
+	if len(interfaceList) < 2 {
+		slug(singleInterface)
+		useSingleInterface := yesNoQuestion{text: "Single Interface", deflt: true}.Ask()
+		if !useSingleInterface {
+			logger.Fatal("No selected interface exiting. BYE!")
+		}
+	}
+	c.Interf = listQuestion{text: "Select Interface to run services on", list: interfaceList}.Ask()
+	slug(enableIPFS)
+	c.IPFS = yesNoQuestion{text: "Enable IPFS data source", deflt: true}.Ask()
+	slug(enableSpawn)
+	c.Spawn = yesNoQuestion{text: "Enable Spawn", deflt: true}.Ask()
+	slug(extraNetwork)
+	runExtra := yesNoQuestion{text: "Extra Network Configuration", deflt: false}.Ask()
+	if runExtra {
+		serverIP := getAddr(c.Interf)
+		c.DNSServer = ipAddrQuestion{text: "IP address for a dns server", ip: serverIP}.Ask()
+		c.Gateway = ipAddrQuestion{text: "IP address for the gateway for dhcp clients", ip: serverIP}.Ask()
+	}
+	slug(finishUP)
+	c.PrintConfig()
+	saveConfig := yesNoQuestion{text: "Save Config", deflt: false}.Ask()
+	if saveConfig {
+		c.Save()
+	} else {
+		logger.Fatal("Configuration Failed")
+	}
 }
 
 func getInterf() (in map[string]string) {
@@ -28,9 +46,38 @@ func getInterf() (in map[string]string) {
 	if err != nil {
 		logger.Error("Startup Interface %v", err)
 	}
-	for _, n := range interfaces {
+	for _, n := range interfaces[1:] { //ignore lo
 		addr, _ := n.Addrs()
-		in[n.Name] = addr[0].String()
+		if len(addr) > 0 {
+			in[n.Name] = addr[0].String()
+		}
 	}
 	return
 }
+
+func getAddr(ifaceName string) (i net.IP) {
+	iface, _ := net.InterfaceByName(ifaceName)
+	addressList, _ := iface.Addrs()
+	i, _, _ = net.ParseCIDR(addressList[0].String())
+	return
+}
+
+const preamble = `Welcome to Astralboot,
+
+This program is a boot server that provides dhcp/tftp/http services to automate the boot sequence.
+
+First some questions to help getting set up:
+`
+
+const singleInterface = `Having a single interface can be dangerous if there is another DHCP server on the local network
+Are you sure you want to use a single interface?`
+
+const enableIPFS = `IPFS is a distributed data store , find out more at http://ipfs.io/
+To access this service you will need to have a local IPFS node running.
+If you select NO you will need to have some local files and folders in ./data/ for astralboot to work. `
+
+const enableSpawn = `Spawn is a coreos bootstrapper that talks to fleetd and auto starts unit files listed.
+The source code is included in spawn directory.`
+
+const extraNetwork = `Edit the DNS server and gateway ip addresses? these will default to this server if not specified.`
+const finishUP = `This is the config setup so far`
