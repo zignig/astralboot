@@ -95,7 +95,7 @@ func (q *listQuestion) Ask() (response string) {
 		fmt.Println("Bad Format")
 		q.Ask()
 	}
-	if (value > 0) && (value <= len(q.list)) {
+	if (value >= 0) && (value <= len(q.list)) {
 		return asList[value]
 	} else {
 		fmt.Println("Out of range")
