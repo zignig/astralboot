@@ -109,7 +109,19 @@ func Load(name string) (ll LeaseList) {
 	if err != nil {
 		logger.Critical("Lease Marshall fail , %v", err)
 	}
+	active := 0
+	reserved := 0
+	for _, i := range ll.Leases {
+		if i.Active == true {
+			active = active + 1
+		}
+		if i.Reserved == true {
+			reserved = reserved + 1
+		}
+	}
 	logger.Info("%v leases in file", len(ll.Leases))
+	logger.Notice("%v active leases in file", active)
+	logger.Debug("%v reserved leases in file", reserved)
 	return ll
 }
 

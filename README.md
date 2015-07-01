@@ -31,11 +31,14 @@ As this server has a naive dhcp server it can be dangerous to run in an office e
 
 assumes a working golang environment.
 
->go get github.com/zignig/astralboot
+```sh
 
->cd $GOPATH/src/github.com/zignig/astralboot
+go get github.com/zignig/astralboot
 
->go build
+cd $GOPATH/src/github.com/zignig/astralboot
+
+go build
+```
 
 also the ipfs service, which is currently  in alpha , is available from http://github.com/ipfs/go-ipfs
 
