@@ -4,24 +4,8 @@ package main
 import (
 	"fmt"
 	"net"
+	"strconv"
 )
-
-type Asker interface {
-	Ask() (i interface{})
-}
-
-type qTree struct {
-	title     string
-	questions []Asker
-	finished  bool
-}
-
-func (q *qTree) Run(c interface{}) {
-	fmt.Println(q.title)
-	for _, i := range q.questions {
-		i.Ask()
-	}
-}
 
 // Yes or No question
 type yesNoQuestion struct {
@@ -30,12 +14,12 @@ type yesNoQuestion struct {
 	val   bool
 }
 
-func (q *yesNoQuestion) Ask() (v interface{}) {
+func (q *yesNoQuestion) Ask() (b bool) {
 	header(q.text)
 	if q.deflt {
-		fmt.Print("(Y/n}>")
+		fmt.Print("(Y/n)>")
 	} else {
-		fmt.Print("(y/N}>")
+		fmt.Print("(y/N)>")
 	}
 	var response string
 	_, err := fmt.Scanln(&response)
@@ -66,7 +50,7 @@ type ipAddrQuestion struct {
 	ip   string
 }
 
-func (q *ipAddrQuestion) Ask() (v interface{}) {
+func (q *ipAddrQuestion) Ask() (addr net.IPAddr) {
 	header(q.text)
 	var response string
 	_, err := fmt.Scanln(&response)
@@ -80,6 +64,43 @@ func (q *ipAddrQuestion) Ask() (v interface{}) {
 		return q.Ask()
 	}
 	fmt.Println(val)
+	return
+}
+
+// Select from list
+type listQuestion struct {
+	text string
+	list map[string]string
+}
+
+func (q *listQuestion) Ask() (response string) {
+	header(q.text)
+	counter := 0
+	value := 0
+	asList := []string{}
+	for i, item := range q.list {
+		fmt.Printf("%d : %s -  %s\n", counter, i, item)
+		counter = counter + 1
+		asList = append(asList, i)
+	}
+	fmt.Print("Select Item >")
+	_, err := fmt.Scanln(&response)
+	if err != nil {
+		fmt.Println(len(response))
+		logger.Error("readline error %v", err)
+	}
+	value, err = strconv.Atoi(response)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Bad Format")
+		q.Ask()
+	}
+	if (value > 0) && (value <= len(q.list)) {
+		return asList[value]
+	} else {
+		fmt.Println("Out of range")
+		return q.Ask()
+	}
 	return
 }
 
@@ -98,5 +119,7 @@ func posString(slice []string, element string) int {
 }
 
 func header(t string) {
+	fmt.Println()
 	fmt.Println(t)
+	fmt.Println()
 }

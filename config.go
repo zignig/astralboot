@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"net"
+	"os"
 	"text/template"
 
 	"github.com/BurntSushi/toml"
@@ -40,13 +41,13 @@ type Config struct {
 	Gateway   net.IP
 	Subnet    net.IP
 	DNSServer net.IP
-	Domain    string
-	DBname    string
+	Domain    string `toml:"Domain,omitempty"`
+	DBname    string `toml:"DBname,omitempty"`
 	IPFS      bool
 	Refs      *Refs // ipfs references
+	OSList    map[string]*OperatingSystem
 	// not exported generated config parts
-	fs     ROfs
-	OSList map[string]*OperatingSystem
+	fs ROfs
 }
 
 //GetConfig :  loads config and settings from ipfs ref or file system
@@ -56,8 +57,7 @@ func GetConfig(path string) (c *Config) {
 		logger.Critical("Config file %s does not exists", path)
 		logger.Critical("Starting Configurator")
 		c = &Config{}
-		qt := c.Setup()
-		qt.Run(c)
+		c.Setup()
 	}
 	// loading the refs from seperate file
 	re := &Refs{}
@@ -116,4 +116,19 @@ func (c *Config) PrintConfig() {
 	buf := new(bytes.Buffer)
 	err := toml.NewEncoder(buf).Encode(c)
 	fmt.Println(buf.String(), err)
+}
+
+// Save to file
+func (c *Config) Save() {
+	buf := new(bytes.Buffer)
+	err := toml.NewEncoder(buf).Encode(c)
+	if err != nil {
+		logger.Critical("Config Marshal Fail %v", err)
+	}
+	f, err := os.Create("config.toml")
+	defer f.Close()
+	if err != nil {
+		logger.Critical("Config Save Fail %v", err)
+	}
+	f.Write(buf.Bytes())
 }

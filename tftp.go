@@ -7,7 +7,6 @@ import (
 	tftp "github.com/zignig/go-tftp/server"
 	"io"
 	"io/ioutil"
-	"os"
 	"sync"
 )
 
@@ -58,6 +57,5 @@ func tftpServer(conf *Config) {
 	e := s.Serve(":69")
 	if e != nil {
 		logger.Error("tftp error, %s", e)
-		os.Exit(1)
 	}
 }

@@ -12,7 +12,6 @@ func main() {
 	highDebug := flag.Bool("vvv", false, "Debug")
 	flag.Parse()
 	var logLevel int
-	fmt.Println(*lowDebug, *medDebug, *highDebug)
 	if *lowDebug {
 		logLevel = 1
 	}
@@ -42,7 +41,7 @@ func main() {
 	wh := NewWebServer(conf, leases, logLevel)
 	go wh.Run()
 	logger.Notice("Serving ...")
-	// goroutine spinner
+	// go spinner
 	c := make(chan int, 1)
 	<-c
 }
