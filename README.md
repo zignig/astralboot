@@ -55,7 +55,6 @@ enable forwarding
 echo 1 > /proc/sys/net/ipv4/ip_forward
 ```
 make it stick 
-```
 ```sh
 edit /etc/sysctl.conf  and change  net.ipv4.ip_forward = 1
 ```
