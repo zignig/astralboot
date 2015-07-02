@@ -4,6 +4,8 @@ Simon Kirkby
 tigger@interthingy.com
 20150304
 
+This repository has been moved to gb format  https://getgb.io/ , it’s cool.
+
 ## Description 
 
 Astralboot is a golang server that provides network services to boot virtual and metal machines from pxe boot.
