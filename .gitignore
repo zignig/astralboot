@@ -1,2 +1,4 @@
 *.vmlinuz
 *.cpio.gz
+pkg/
+bin/
