@@ -54,7 +54,7 @@ func tftpServer(conf *Config) {
 	localConf = conf
 	storage = make(map[string][]byte)
 	s := tftp.NewServer("", HandleRead, HandleWrite, logger)
-	e := s.Serve(":69")
+	e := s.Serve(conf.BaseIP.String() + ":69")
 	if e != nil {
 		logger.Error("tftp error, %s", e)
 	}

@@ -77,7 +77,7 @@ func NewWebServer(c *Config, l *Store, level int) *WebHandler {
 
 // Run : run the web server
 func (wh *WebHandler) Run() {
-	logger.Error("Web Server error %v", wh.router.Run(":80"))
+	logger.Error("Web Server error %v", wh.router.Run(wh.config.BaseIP.String()+":80"))
 }
 
 // TemplateData : template construct

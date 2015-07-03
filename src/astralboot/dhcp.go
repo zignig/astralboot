@@ -22,7 +22,7 @@ func dhcpServer(c *Config, l *Store) {
 			dhcp.OptionDomainNameServer: []byte(c.DNSServer.To4()),
 		},
 	}
-	dhcp.ListenAndServeIf(c.Interf, handler)
+	logger.Error("%v", dhcp.ListenAndServeIf(c.Interf, handler))
 }
 
 type lease struct {
