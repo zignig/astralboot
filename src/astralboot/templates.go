@@ -4,7 +4,7 @@ package main
 import (
 	"github.com/BurntSushi/toml"
 	"io/ioutil"
-	"os"
+	//"os"
 	"strings"
 	"text/template"
 )
@@ -17,7 +17,7 @@ func (c *Config) OSListGet() (osm map[string]*OperatingSystem) {
 	list, err := c.fs.List("boot")
 	if err != nil {
 		logger.Error("OS failure %s", err)
-		os.Exit(1)
+		//		os.Exit(1)
 	}
 	logger.Info("OS listing ", list)
 	for _, i := range list {

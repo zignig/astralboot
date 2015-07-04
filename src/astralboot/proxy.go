@@ -34,7 +34,7 @@ func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, size int64,
 		u.RawQuery = val.Encode()
 	}
 	//TODO need to parse and return http status
-	//logger.Debug(u.String())
+	logger.Debug("URL : %s", u.String())
 	resp, err = http.Get(u.String())
 	size = resp.ContentLength
 	if resp.StatusCode != 200 {
@@ -48,7 +48,8 @@ func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, size int64,
 
 //Ls :  Get the file listing ( json blob )
 func (fs *IPfsfs) Ls(name string) (data []byte, err error) {
-	htr, _, err := fs.Req("ls", fs.base+"/"+name)
+	logger.Debug("get listing for %s", name)
+	htr, _, err := fs.Req("ls", "/ipfs/"+fs.base+"/"+name+"/")
 	if err != nil {
 		return data, err
 	}
@@ -58,7 +59,7 @@ func (fs *IPfsfs) Ls(name string) (data []byte, err error) {
 
 //Get : get a file out of ipfs ( ROfs interface )
 func (fs *IPfsfs) Get(s string) (f io.ReadCloser, size int64, err error) {
-	data, size, err := fs.Req("cat", fs.base+"/"+s)
+	data, size, err := fs.Req("cat", "/ipfs/"+fs.base+"/"+s)
 	return data.Body, size, err
 }
 
