@@ -77,6 +77,25 @@ func TestContextReset(t *testing.T) {
 	assert.Equal(t, c.Writer.(*responseWriter), &c.writermem)
 }
 
+func TestContextHandlers(t *testing.T) {
+	c, _, _ := createTestContext()
+	assert.Nil(t, c.handlers)
+	assert.Nil(t, c.handlers.Last())
+
+	c.handlers = HandlersChain{}
+	assert.NotNil(t, c.handlers)
+	assert.Nil(t, c.handlers.Last())
+
+	f := func(c *Context) {}
+	g := func(c *Context) {}
+
+	c.handlers = HandlersChain{f}
+	compareFunc(t, f, c.handlers.Last())
+
+	c.handlers = HandlersChain{f, g}
+	compareFunc(t, g, c.handlers.Last())
+}
+
 // TestContextSetGet tests that a parameter is set correctly on the
 // current context and can be retrieved using Get.
 func TestContextSetGet(t *testing.T) {
@@ -129,7 +148,7 @@ func TestContextCopy(t *testing.T) {
 	assert.Nil(t, cp.writermem.ResponseWriter)
 	assert.Equal(t, &cp.writermem, cp.Writer.(*responseWriter))
 	assert.Equal(t, cp.Request, c.Request)
-	assert.Equal(t, cp.index, AbortIndex)
+	assert.Equal(t, cp.index, abortIndex)
 	assert.Equal(t, cp.Keys, c.Keys)
 	assert.Equal(t, cp.engine, c.engine)
 	assert.Equal(t, cp.Params, c.Params)
@@ -190,13 +209,13 @@ func TestContextQueryAndPostForm(t *testing.T) {
 
 	var obj struct {
 		Foo  string `form:"foo"`
-		Id   string `form:"id"`
+		ID   string `form:"id"`
 		Page string `form:"page"`
 		Both string `form:"both"`
 	}
 	assert.NoError(t, c.Bind(&obj))
 	assert.Equal(t, obj.Foo, "bar")
-	assert.Equal(t, obj.Id, "main")
+	assert.Equal(t, obj.ID, "main")
 	assert.Equal(t, obj.Page, "11")
 	assert.Equal(t, obj.Both, "POST")
 }
@@ -408,6 +427,20 @@ func TestContextNegotiationFormatCustum(t *testing.T) {
 	assert.Equal(t, c.NegotiateFormat(MIMEJSON), MIMEJSON)
 }
 
+func TestContextIsAborted(t *testing.T) {
+	c, _, _ := createTestContext()
+	assert.False(t, c.IsAborted())
+
+	c.Abort()
+	assert.True(t, c.IsAborted())
+
+	c.Next()
+	assert.True(t, c.IsAborted())
+
+	c.index++
+	assert.True(t, c.IsAborted())
+}
+
 // TestContextData tests that the response can be written from `bytesting`
 // with specified MIME type
 func TestContextAbortWithStatus(t *testing.T) {
@@ -416,7 +449,7 @@ func TestContextAbortWithStatus(t *testing.T) {
 	c.AbortWithStatus(401)
 	c.Writer.WriteHeaderNow()
 
-	assert.Equal(t, c.index, AbortIndex)
+	assert.Equal(t, c.index, abortIndex)
 	assert.Equal(t, c.Writer.Status(), 401)
 	assert.Equal(t, w.Code, 401)
 	assert.True(t, c.IsAborted())
@@ -468,7 +501,7 @@ func TestContextAbortWithError(t *testing.T) {
 	c.Writer.WriteHeaderNow()
 
 	assert.Equal(t, w.Code, 401)
-	assert.Equal(t, c.index, AbortIndex)
+	assert.Equal(t, c.index, abortIndex)
 	assert.True(t, c.IsAborted())
 }
 
