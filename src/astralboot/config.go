@@ -75,7 +75,6 @@ func GetConfig(path string) (c *Config) {
 	if err != nil {
 		logger.Error("Interface error ", err)
 	}
-	//TODO fix interface checks
 	addressList, _ := interf.Addrs()
 	serverAddress, ipnet, _ := net.ParseCIDR(addressList[0].String())
 	logger.Notice("Server Address  : %s", serverAddress)

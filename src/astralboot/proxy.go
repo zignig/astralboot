@@ -33,7 +33,6 @@ func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, size int64,
 		val.Set("encoding", "json")
 		u.RawQuery = val.Encode()
 	}
-	//TODO need to parse and return http status
 	logger.Debug("URL : %s", u.String())
 	resp, err = http.Get(u.String())
 	size = resp.ContentLength

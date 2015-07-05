@@ -52,7 +52,7 @@ func (sa *SpawnAPI) ScanUnits() {
 			if err != nil {
 				logger.Error("template parse error , %s", err)
 			}
-			sa.units[shortName] = "active" // TODO put unit info in here
+			sa.units[shortName] = "active" // put unit info in here
 		}
 	}
 	sa.templates = NewTemplates

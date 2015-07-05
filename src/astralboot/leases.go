@@ -74,7 +74,6 @@ func (ll *LeaseList) Append(l *Lease) {
 
 //GetDist :  Returns a map of leaselist for classes of a given disto
 func (ll LeaseList) GetDist(dist string) (le map[string]*LeaseList, err error) {
-	// TODO get dist list
 	le = make(map[string]*LeaseList)
 	for _, i := range ll.Leases {
 		if i.Distro == dist {
@@ -86,15 +85,6 @@ func (ll LeaseList) GetDist(dist string) (le map[string]*LeaseList, err error) {
 			//logger.Critical("%v", le)
 		}
 	}
-	return
-}
-
-//GetClasses : return a list of classes ( not working for now )
-func (ll LeaseList) GetClasses() (classes []string, err error) {
-	for i := range ll.Leases {
-		logger.Critical("%v", i)
-	}
-	logger.Critical("TODO class list")
 	return
 }
 

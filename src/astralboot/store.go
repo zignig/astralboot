@@ -158,8 +158,14 @@ func (s Store) GetFromIP(ip net.IP) (l *Lease, err error) {
 }
 
 // Release : not working
-func (s Store) Release(mac net.HardwareAddr) {
-	//TODO update lease to be active false
+func (s Store) Release(mac net.HardwareAddr) (err error) {
+	rell, err := s.leases.Mac(mac)
+	if err == nil {
+		return err
+	}
+	rell.Active = false
+	s.leases.Save(s.DBname)
+	return nil
 }
 
 // GetLease : get an existing lease or mark a new one.

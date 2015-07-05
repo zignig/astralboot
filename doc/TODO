@@ -1,7 +1,3 @@
-config.go:73:	//TODO fix interface checks
-leases.go:75:	// TODO get dist list
-leases.go:95:	logger.Critical("TODO class list")
-proxy.go:36:	//TODO need to parse and return http status
-rocket.go:28:// TODO move into spawn module
-rocket.go:72:			sa.units[shortName] = "active" // TODO put unit info in here
-store.go:162:	//TODO update lease to be active false
+Better error handling on missing ipfs node
+Work on debian and ubuntu preseed.
+
