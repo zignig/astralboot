@@ -19,7 +19,7 @@ It can pull its data files out of [ipfs](http://ipfs.io/), which means that they
 
 Local file serving also works with local file system folders ( see INSTRUCTIONS for details )
 
-## Required 
+## Required for development
 
 1. golang dev environment
 2. running ipfs node
@@ -66,24 +66,21 @@ change the firewall
 ```
 The test machines to be bootstrapped have one network interface attached to isolated VM network.
 
-Once you have the astral boot binary built, edit the config.toml file for interfaces on your virtual machines.
-
 The default hashes for booting are included in the git repository , put them into place by running.
 ```sh
 cp refs.toml.dist refs.toml
 ```
-a minimal config is
-
->interface = "eth1"
-
 
 It is worth noting that this will need to be run as root , dhcp, tftp and http not running on the machine
 
 Now you are good to go, run the astralboot binary
 
-1. It will grab some files from ipfs ( or local file system )and load up the various operating system files.
-2. On the first run it will populate the leases.db file with empty ip addresses.
-3. All the services will start and it will be ready to serve.
+1. If the config.toml file does not exists it will ask some questions to set up
+2. It will grab some files from ipfs ( or local file system )and load up the various operating system files.
+3. On the first run it will populate the leases.db file with empty ip addresses.
+4. All the services will start and it will be ready to serve.
+
+Verbosity can be changed by adding -v , -vv and -vvv to the command line.
 
 Now comes the fun bit ....
 
@@ -116,7 +113,7 @@ In the astralboot folder :
 ```sh
 ipfs get -o=data “hash from the refs.toml file”
 ```
-then run astralboot with a -l ( l for larry ) flag an it will use the local file system.
+If the config has IPFS = false the local file system will be used.
 
 # Development
 
@@ -126,7 +123,4 @@ all comments, patches and pull requests welcome
 
 1. Better templating of preseed 
 2. Add more operating systems
-3. Add DNS server 
 4. More stuff
-
-
