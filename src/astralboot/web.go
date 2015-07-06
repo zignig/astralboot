@@ -72,6 +72,9 @@ func NewWebServer(c *Config, l *Store, level int) *WebHandler {
 	wh.router.GET("/config/:dist/:action", wh.Config)
 	// rocket handlers
 	wh.RocketHandler()
+	if wh.config.Spawn {
+		wh.SpawnHandler()
+	}
 	return wh
 }
 
