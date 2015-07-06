@@ -60,12 +60,18 @@ func (sa *SpawnAPI) ScanUnits() {
 }
 
 func (wh *WebHandler) SpawnHandler() {
-	rocketRef := wh.config.Refs.Rocket
+	spawnRef := wh.config.Refs.Spawn
 	var fs ROfs
 	if wh.config.IPFS == true {
-		fs = &IPfsfs{rocketRef}
+		// if empty ref assume under base ref
+		if spawnRef == "" {
+			logger.Debug("using units under boot ref")
+			fs = &IPfsfs{wh.config.Refs.Boot}
+		} else {
+			fs = &IPfsfs{spawnRef}
+		}
 	} else {
-		fs = &Diskfs{"./rocket"}
+		fs = &Diskfs{"./data"}
 	}
 	TheSpawn = NewSpawnAPI(fs)
 	wh.router.GET("/spawn/list", wh.UnitList)

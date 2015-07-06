@@ -30,6 +30,7 @@ type classes struct {
 type Refs struct {
 	Boot   string `toml:"boot"`
 	Rocket string `toml:"rocket"`
+	Spawn  string `toml:"spawn"`
 }
 
 //Config :  base configuration structure

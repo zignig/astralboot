@@ -9,7 +9,7 @@ import (
 var logger = logging.MustGetLogger("astralboot")
 
 var format = logging.MustStringFormatter(
-	"%{color}%{time:0102 15:04:05.000}  %{shortfunc:13s} %{level:7s} %{id:03x}%{color:reset} %{message}",
+	"%{color}%{time:0102 15:04:05.000}  %{shortfunc:13s} %{level:8s} %{id:03x}%{color:reset} %{message}",
 )
 
 //LogSetup : set up the logging for information output
