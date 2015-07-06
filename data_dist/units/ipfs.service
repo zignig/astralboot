@@ -1,0 +1,10 @@
+[Unit]
+Description=ipfs node
+
+[Service]
+TimeoutStartSec=0
+ExecStart=/usr/bin/rkt --insecure-skip-verify run {{.BaseIP}}/rocket/ipfs:0.5 -- daemon --init
+
+[X-Fleet]
+Global=true
+MachineMetadata=role=worker
