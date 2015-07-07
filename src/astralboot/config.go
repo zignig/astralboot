@@ -44,6 +44,7 @@ type Config struct {
 	DNSServer net.IP
 	Domain    string `toml:"Domain,omitempty"`
 	DBname    string `toml:"DBname,omitempty"`
+	Data      string `toml:"Data,omitempty"`
 	IPFS      bool
 	Refs      *Refs // ipfs references
 	OSList    map[string]*OperatingSystem
@@ -94,13 +95,21 @@ func GetConfig(path string) (c *Config) {
 	if c.Domain == "" {
 		c.Domain = "erf"
 	}
-
+	// Data directory
+	if c.Data == "" {
+		c.Data = "./data"
+	}
 	var filesystem ROfs
 	if c.IPFS == true {
 		logger.Critical("Using IPFS for boot files")
 		filesystem = &IPfsfs{c.Refs.Boot}
 	} else {
-		filesystem = &Diskfs{"./data"}
+		filesystem = &Diskfs{c.Data}
+	}
+	// stat the file system
+	stat := filesystem.Stat()
+	if !stat {
+		logger.Fatal("File system fail")
 	}
 	c.fs = filesystem
 

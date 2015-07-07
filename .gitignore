@@ -1,4 +1,5 @@
 *.vmlinuz
-*.cpio.gz
+*.gz
+linux
 pkg/
 bin/

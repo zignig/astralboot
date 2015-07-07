@@ -19,6 +19,8 @@ type ROfs interface {
 	List(name string) (names []string, err error)
 	// get an io reader of the data
 	Get(name string) (f io.ReadCloser, size int64, err error)
+	// check if the file system exists
+	Stat() (stat bool)
 }
 
 //Diskfs : basic disk base file system
@@ -45,4 +47,14 @@ func (fs *Diskfs) Get(name string) (f io.ReadCloser, size int64, err error) {
 		size = fi.Size()
 	}
 	return f, size, err
+}
+
+//Stat : checks to see if file system exists
+func (fs *Diskfs) Stat() (stat bool) {
+	_, err := os.Stat(fs.base)
+	if err != nil {
+		logger.Error("FS stat %s", err)
+		return false
+	}
+	return true
 }

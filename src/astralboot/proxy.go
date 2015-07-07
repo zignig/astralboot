@@ -35,6 +35,9 @@ func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, size int64,
 	}
 	logger.Debug("URL : %s", u.String())
 	resp, err = http.Get(u.String())
+	if resp == nil {
+		return nil, 0, err
+	}
 	size = resp.ContentLength
 	if resp.StatusCode != 200 {
 		return resp, 0, errors.New(resp.Status)
@@ -43,6 +46,16 @@ func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, size int64,
 		return resp, 0, err
 	}
 	return resp, size, err
+}
+
+//Stat : Check if the file system exist
+func (fs *IPfsfs) Stat() (stat bool) {
+	_, _, err := fs.Req("id", "")
+	if err != nil {
+		logger.Critical("IPFS stat , %s", err)
+		return false
+	}
+	return true
 }
 
 //Ls :  Get the file listing ( json blob )
