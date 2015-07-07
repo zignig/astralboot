@@ -6,11 +6,18 @@ import (
 	"fmt"
 )
 
+var configFile string
+
 func main() {
+	// Flags
+	configFileName := flag.String("c", "config.toml", "name for config file")
 	lowDebug := flag.Bool("v", false, "Notice and Above")
 	medDebug := flag.Bool("vv", false, "Info")
 	highDebug := flag.Bool("vvv", false, "Debug")
 	flag.Parse()
+	// Config file name
+	configFile = *configFileName
+	// log level switcher
 	var logLevel int
 	if *lowDebug {
 		logLevel = 1
@@ -24,7 +31,7 @@ func main() {
 	LogSetup(logLevel)
 	fmt.Println(banner)
 	logger.Notice("Starting Astralboot Server")
-	conf := GetConfig("config.toml")
+	conf := GetConfig(configFile)
 	logger.Notice("Using interface : %s", conf.Interf)
 	if logLevel > 0 {
 		logger.Notice("-- Implied Config Start --")

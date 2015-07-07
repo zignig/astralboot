@@ -55,7 +55,6 @@ type Config struct {
 func GetConfig(path string) (c *Config) {
 	if _, err := toml.DecodeFile(path, &c); err != nil {
 		logger.Critical("Config Error %s", err)
-		logger.Critical("Config file %s does not exists", path)
 		logger.Critical("Starting Configurator")
 		c = &Config{}
 		c.Setup()
@@ -122,13 +121,13 @@ func (c *Config) PrintConfig() {
 }
 
 // Save to file
-func (c *Config) Save() {
+func (c *Config) Save(configFileName string) {
 	buf := new(bytes.Buffer)
 	err := toml.NewEncoder(buf).Encode(c)
 	if err != nil {
 		logger.Critical("Config Marshal Fail %v", err)
 	}
-	f, err := os.Create("config.toml")
+	f, err := os.Create(configFileName)
 	defer f.Close()
 	if err != nil {
 		logger.Critical("Config Save Fail %v", err)

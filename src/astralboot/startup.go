@@ -34,7 +34,7 @@ func (c *Config) Setup() {
 	c.PrintConfig()
 	saveConfig := yesNoQuestion{text: "Save Config", deflt: true}.Ask()
 	if saveConfig {
-		c.Save()
+		c.Save(configFile)
 	} else {
 		logger.Fatal("Configuration Failed")
 	}
