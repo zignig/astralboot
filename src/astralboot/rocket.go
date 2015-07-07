@@ -58,6 +58,7 @@ func (wh *WebHandler) AciImage(c *gin.Context) {
 		logger.Error("Rocket file error : %s", err)
 		c.AbortWithStatus(404)
 	}
+	logger.Notice("Serving ACI : %s", AciName)
 	c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))
 	io.Copy(c.Writer, fh)
 }
