@@ -53,6 +53,10 @@ func HandleRead(filename string) (r io.Reader, err error) {
 func tftpServer(conf *Config) {
 	localConf = conf
 	storage = make(map[string][]byte)
+	_, err := getFile("/undionly.kpxe")
+	if err != nil {
+		logger.Fatal("TFTP preload error : %s", err)
+	}
 	s := tftp.NewServer("", HandleRead, HandleWrite, logger)
 	e := s.Serve(conf.BaseIP.String() + ":69")
 	if e != nil {
