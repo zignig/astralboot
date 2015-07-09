@@ -21,6 +21,11 @@ func (c *Config) Setup() {
 	c.Interf = listQuestion{text: "Select Interface to run services on", list: interfaceList}.Ask()
 	slug(enableIPFS)
 	c.IPFS = yesNoQuestion{text: "Enable IPFS data source", deflt: true}.Ask()
+	if c.IPFS {
+		logger.Critical("Help With IPFS setup")
+	} else {
+		logger.Critical("Help With file system setup")
+	}
 	slug(enableSpawn)
 	c.Spawn = yesNoQuestion{text: "Enable Spawn", deflt: true}.Ask()
 	slug(extraNetwork)
