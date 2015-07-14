@@ -21,19 +21,22 @@ func dhcpServer(c *Config, l *Store) {
 			dhcp.OptionRouter:           []byte(c.Gateway.To4()),
 			dhcp.OptionDomainNameServer: []byte(c.DNSServer.To4()),
 		},
+		skinnyOptions: dhcp.Options{
+			dhcp.OptionSubnetMask:       []byte(c.Subnet.To4()),
+			dhcp.OptionBootFileName:     []byte("http://" + c.BaseIP.String() + "/choose"),
+			dhcp.OptionRouter:           []byte(c.Gateway.To4()),
+			dhcp.OptionDomainNameServer: []byte(c.DNSServer.To4()),
+			dhcp.OptionDomainName:       []byte(c.Domain),
+		},
 	}
 	logger.Error("%v", dhcp.ListenAndServeIf(c.Interf, handler))
-}
-
-type lease struct {
-	nic    string    // Client's CHAddr
-	expiry time.Time // When the lease expires
 }
 
 //DHCPHandler : data structure for the dhcp server
 type DHCPHandler struct {
 	ip            net.IP        // Server IP to use
-	options       dhcp.Options  // Options to send to DHCP Clients
+	options       dhcp.Options  // Options to send to new DHCP Clients
+	skinnyOptions dhcp.Options  // Options to send to skinny DHCP Clients
 	start         net.IP        // Start of IP range to distribute
 	leaseRange    int           // Number of IPs to distribute (starting from start)
 	leaseDuration time.Duration // Lease period
@@ -43,14 +46,6 @@ type DHCPHandler struct {
 
 //ServeDHCP : function for every dhcp request
 func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options dhcp.Options) (d dhcp.Packet) {
-	// options for booting device
-	skinnyOptions := dhcp.Options{
-		dhcp.OptionSubnetMask:       []byte(h.config.Subnet.To4()),
-		dhcp.OptionBootFileName:     []byte("http://" + h.ip.String() + "/choose"),
-		dhcp.OptionRouter:           []byte(h.config.Gateway.To4()),
-		dhcp.OptionDomainNameServer: []byte(h.config.DNSServer.To4()),
-		dhcp.OptionDomainName:       []byte(h.config.Domain),
-	}
 	// get an existing lease or make a new one
 	TheLease, err := h.leases.GetLease(p.CHAddr())
 	logger.Info("%s has an ip of %s ", TheLease.MAC, TheLease.IP)
@@ -79,16 +74,16 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		case "skinny":
 			logger.Notice("Booting Machine %s into %s", TheLease.Name, TheLease.Class)
 			if TheLease.Active == true {
-				skinnyOptions[dhcp.OptionHostName] = []byte(TheLease.Name)
-				skinnyOptions[dhcp.OptionBootFileName] = []byte("http://" + h.ip.String() + "/boot/" + TheLease.Distro + "/${net0/mac}")
+				h.skinnyOptions[dhcp.OptionHostName] = []byte(TheLease.Name)
+				h.skinnyOptions[dhcp.OptionBootFileName] = []byte("http://" + h.ip.String() + "/boot/" + TheLease.Distro + "/${net0/mac}")
 			}
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP.To4(), net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
-				skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
+				h.skinnyOptions.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 			return rp
 		default:
 			logger.Info("normal dhcp request")
 			if TheLease.Active == true {
-				skinnyOptions[dhcp.OptionHostName] = []byte(TheLease.Name)
+				h.skinnyOptions[dhcp.OptionHostName] = []byte(TheLease.Name)
 			}
 			rp := dhcp.ReplyPacket(p, dhcp.ACK, h.config.BaseIP.To4(), net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
 				h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))

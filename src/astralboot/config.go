@@ -20,7 +20,6 @@ type OperatingSystem struct {
 	templates   *template.Template
 }
 
-// c.lass list
 // sub type of the operating system type
 type classes struct {
 	Classes []string `toml:"classes"`
@@ -60,7 +59,7 @@ func GetConfig(path string) (c *Config) {
 		c = &Config{}
 		c.Setup()
 	}
-	// loading the refs from seperate file
+	// loading the refs from separate file
 	re := &Refs{}
 	if _, err := toml.DecodeFile("refs.toml", &re); err != nil {
 		logger.Critical("Reference file does not exists")

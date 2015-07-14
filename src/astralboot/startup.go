@@ -3,6 +3,7 @@ package main
 
 import (
 	"net"
+	"os"
 )
 
 //Set up the queries/
@@ -23,8 +24,10 @@ func (c *Config) Setup() {
 	c.IPFS = yesNoQuestion{text: "Enable IPFS data source", deflt: true}.Ask()
 	if c.IPFS {
 		logger.Critical("Help With IPFS setup")
+		ipfsHelper()
 	} else {
 		logger.Critical("Help With file system setup")
+		fileHelper()
 	}
 	slug(enableSpawn)
 	c.Spawn = yesNoQuestion{text: "Enable Spawn", deflt: true}.Ask()
@@ -45,6 +48,20 @@ func (c *Config) Setup() {
 	}
 	slug(thanks)
 	slug(banner)
+}
+
+func ipfsHelper() {
+	_, err := os.Stat("refs.toml")
+	if err != nil {
+		logger.Critical("%s", err)
+		if err == os.ErrNotExist {
+			logger.Critical("file does not exist %s", err)
+		}
+	}
+}
+
+func fileHelper() {
+
 }
 
 func getInterf() (in map[string]string) {
