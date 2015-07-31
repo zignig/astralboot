@@ -42,6 +42,7 @@ func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, size int64,
 	if resp == nil {
 		return nil, 0, err
 	}
+	logger.Critical("%v", resp.ContentLength)
 	size = resp.ContentLength
 	if resp.StatusCode != 200 {
 		return resp, 0, errors.New(resp.Status)

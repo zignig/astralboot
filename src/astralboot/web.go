@@ -177,6 +177,7 @@ func (wh *WebHandler) Images(c *gin.Context) {
 		return
 	}
 	c.Writer.WriteHeader(200)
+	c.Writer.Header().Set("Transfer-Encoding", "chunked")
 	if size > 0 {
 		c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))
 	}
