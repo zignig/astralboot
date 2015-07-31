@@ -177,7 +177,9 @@ func (wh *WebHandler) Images(c *gin.Context) {
 		return
 	}
 	c.Writer.WriteHeader(200)
-	c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))
+	if size > 0 {
+		c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))
+	}
 	io.Copy(c.Writer, fh)
 	c.Writer.Flush()
 }

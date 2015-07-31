@@ -21,6 +21,10 @@ type IPfsfs struct {
 	base string
 }
 
+func init() {
+	http.DefaultClient.Transport = &http.Transport{DisableKeepAlives: true}
+}
+
 //Req : base request for ipfs access
 func (fs *IPfsfs) Req(path string, arg string) (resp *http.Response, size int64, err error) {
 	u := url.URL{}

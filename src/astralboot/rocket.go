@@ -59,7 +59,9 @@ func (wh *WebHandler) AciImage(c *gin.Context) {
 		c.AbortWithStatus(404)
 	}
 	logger.Notice("Serving ACI : %s", AciName)
-	c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))
+	if size > 0 {
+		c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))
+	}
 	io.Copy(c.Writer, fh)
 }
 
