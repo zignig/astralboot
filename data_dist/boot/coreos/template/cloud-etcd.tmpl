@@ -44,7 +44,7 @@ write_files:
       [Unit]
       Description=spawn service
       [Service]
-      ExecStart=/usr/bin/rkt --insecure-skip-verify run --set-env SPAWN_SOURCE={{ .BaseIP }} {{ .BaseIP }}/rocket/spawn
+      ExecStart=/usr/bin/rkt --insecure-skip-verify run --set-env SPAWN_SOURCE={{ .BaseIP }} http://{{ .BaseIP }}/images/{{ .BaseIP }}/rocket/spawn-latest-linux-amd64.aci
       [X-Fleet]
       MachineMetadata=role=etcd
 {{ end }}
