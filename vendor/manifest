@@ -5,8 +5,7 @@
 			"importpath": "github.com/BurntSushi/toml",
 			"repository": "https://github.com/BurntSushi/toml",
 			"revision": "056c9bc7be7190eaa7715723883caffa5f8fa3e4",
-			"branch": "master",
-			"path": ""
+			"branch": "master"
 		},
 		{
 			"importpath": "github.com/coreos/go-systemd/unit",
@@ -19,50 +18,49 @@
 			"importpath": "github.com/dustin/go-broadcast",
 			"repository": "https://github.com/dustin/go-broadcast",
 			"revision": "3bdf6d4a7164a50bc19d5f230e2981d87d2584f1",
-			"branch": "master",
-			"path": ""
+			"branch": "master"
 		},
 		{
 			"importpath": "github.com/gin-gonic/gin",
 			"repository": "https://github.com/gin-gonic/gin",
 			"revision": "5f2f8d9cb443a2c31babfbaf7980370995522d5f",
-			"branch": "master",
-			"path": ""
+			"branch": "master"
 		},
 		{
 			"importpath": "github.com/krolaw/dhcp4",
 			"repository": "https://github.com/krolaw/dhcp4",
 			"revision": "ffbbb16f447b3e05b80e8ddecbb8ada36e2ae006",
-			"branch": "master",
-			"path": ""
+			"branch": "master"
 		},
 		{
 			"importpath": "github.com/manucorporat/sse",
 			"repository": "https://github.com/manucorporat/sse",
 			"revision": "c142f0f1baea5cef7f98a8a6c222f6134368c1f5",
-			"branch": "master",
-			"path": ""
+			"branch": "master"
 		},
 		{
 			"importpath": "github.com/manucorporat/stats",
 			"repository": "https://github.com/manucorporat/stats",
 			"revision": "8f2d6ace262eba462e9beb552382c98be51d807b",
-			"branch": "master",
-			"path": ""
+			"branch": "master"
 		},
 		{
 			"importpath": "github.com/mattn/go-colorable",
 			"repository": "https://github.com/mattn/go-colorable",
 			"revision": "40e4aedc8fabf8c23e040057540867186712faa5",
-			"branch": "master",
-			"path": ""
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/miekg/dns",
+			"repository": "https://github.com/miekg/dns",
+			"revision": "8fdd5c33f834fe1c16ede39b38a6bc822d32d07f",
+			"branch": "master"
 		},
 		{
 			"importpath": "github.com/op/go-logging",
 			"repository": "https://github.com/op/go-logging",
 			"revision": "e8d5414f0947014548c2334044a0fac13187dfee",
-			"branch": "master",
-			"path": ""
+			"branch": "master"
 		},
 		{
 			"importpath": "github.com/whyrusleeping/go-tftp/packet",
@@ -103,8 +101,7 @@
 			"importpath": "gopkg.in/bluesuncorp/validator.v5",
 			"repository": "https://gopkg.in/bluesuncorp/validator.v5",
 			"revision": "d8e0c4d93696f467eedc43f7f954b48eb6fe6ba8",
-			"branch": "master",
-			"path": ""
+			"branch": "master"
 		}
 	]
 }

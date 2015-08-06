@@ -24,7 +24,7 @@ const SOA string = "@ SOA prisoner.iana.org. hostmaster.root-servers.org. 200204
 func NewRR(s string) dns.RR { r, _ := dns.NewRR(s); return r }
 
 var zones = map[string]dns.RR{
-	"astral.":               NewRR("$ORIGIN ipfs.\n" + SOA),
+	".":                     NewRR("$ORIGIN ipfs.\n" + SOA),
 	"10.in-addr.arpa.":      NewRR("$ORIGIN 10.in-addr.arpa.\n" + SOA),
 	"254.169.in-addr.arpa.": NewRR("$ORIGIN 254.169.in-addr.arpa.\n" + SOA),
 	"168.192.in-addr.arpa.": NewRR("$ORIGIN 168.192.in-addr.arpa.\n" + SOA),
