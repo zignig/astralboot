@@ -33,47 +33,18 @@ const (
 	mapErrMsg           = "Field validation for \"%s\" failed on key \"%v\" with error(s): %s"
 	structErrMsg        = "Struct:%s\n"
 	diveTag             = "dive"
+	existsTag           = "exists"
 	arrayIndexFieldName = "%s[%d]"
 	mapIndexFieldName   = "%s[%v]"
 )
 
-var structPool *pool
+var structPool *sync.Pool
 
-// Pool holds a channelStructErrors.
-type pool struct {
-	pool chan *StructErrors
-}
-
-// NewPool creates a new pool of Clients.
-func newPool(max int) *pool {
-	return &pool{
-		pool: make(chan *StructErrors, max),
-	}
-}
-
-// Borrow a StructErrors from the pool.
-func (p *pool) Borrow() *StructErrors {
-	var c *StructErrors
-
-	select {
-	case c = <-p.pool:
-	default:
-		c = &StructErrors{
-			Errors:       map[string]*FieldError{},
-			StructErrors: map[string]*StructErrors{},
-		}
-	}
-
-	return c
-}
-
-// Return returns a StructErrors to the pool.
-func (p *pool) Return(c *StructErrors) {
-
-	select {
-	case p.pool <- c:
-	default:
-		// let it go, let it go...
+// returns new *StructErrors to the pool
+func newStructErrors() interface{} {
+	return &StructErrors{
+		Errors:       map[string]*FieldError{},
+		StructErrors: map[string]*StructErrors{},
 	}
 }
 
@@ -357,7 +328,7 @@ type Validate struct {
 // New creates a new Validate instance for use.
 func New(tagName string, funcs map[string]Func) *Validate {
 
-	structPool = newPool(10)
+	structPool = &sync.Pool{New: newStructErrors}
 
 	return &Validate{
 		tagName:         tagName,
@@ -377,9 +348,8 @@ func (v *Validate) SetTag(tagName string) {
 // nearly all cases. only increase if you have a deeply nested struct structure.
 // NOTE: this method is not thread-safe
 // NOTE: this is only here to keep compatibility with v5, in v6 the method will be removed
-// and the max pool size will be passed into the New function
 func (v *Validate) SetMaxStructPoolSize(max int) {
-	structPool = newPool(max)
+	structPool = &sync.Pool{New: newStructErrors}
 }
 
 // AddFunction adds a validation Func to a Validate's map of validators denoted by the key
@@ -440,7 +410,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 		cs = &cachedStruct{name: structName, children: numFields}
 	}
 
-	validationErrors := structPool.Borrow()
+	validationErrors := structPool.Get().(*StructErrors)
 	validationErrors.Struct = structName
 
 	for i := 0; i < numFields; i++ {
@@ -617,7 +587,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 	structCache.Set(structType, cs)
 
 	if len(validationErrors.Errors) == 0 && len(validationErrors.StructErrors) == 0 {
-		structPool.Return(validationErrors)
+		structPool.Put(validationErrors)
 		return nil
 	}
 
@@ -641,7 +611,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	var valueField reflect.Value
 
 	// This is a double check if coming from validate.Struct but need to be here in case function is called directly
-	if tag == noValidationTag {
+	if tag == noValidationTag || tag == "" {
 		return nil
 	}
 
@@ -658,7 +628,11 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 			f = valueField.Interface()
 		}
 
-		cField = &cachedField{name: name, kind: valueField.Kind(), tag: tag, typ: valueField.Type()}
+		cField = &cachedField{name: name, kind: valueField.Kind(), tag: tag}
+
+		if cField.kind != reflect.Invalid {
+			cField.typ = valueField.Type()
+		}
 
 		switch cField.kind {
 		case reflect.Slice, reflect.Array:
@@ -679,8 +653,14 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	}
 
 	switch cField.kind {
+	case reflect.Invalid:
+		return &FieldError{
+			Field: cField.name,
+			Tag:   cField.tag,
+			Kind:  cField.kind,
+		}
 
-	case reflect.Struct, reflect.Interface, reflect.Invalid:
+	case reflect.Struct, reflect.Interface:
 
 		if cField.typ != reflect.TypeOf(time.Time{}) {
 			panic("Invalid field passed to fieldWithNameAndValue")
@@ -743,7 +723,22 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 			for _, val := range cTag.keyVals {
 
+				// if (idxField.Kind() == reflect.Ptr || idxField.Kind() == reflect.Interface) && idxField.IsNil() {
+				// if val[0] == existsTag {
+				// 	if (cField.kind == reflect.Ptr || cField.kind == reflect.Interface) && valueField.IsNil() {
+				// 		fieldErr = &FieldError{
+				// 			Field: name,
+				// 			Tag:   val[0],
+				// 			Value: f,
+				// 			Param: val[1],
+				// 		}
+				// 		err = errors.New(fieldErr.Tag)
+				// 	}
+
+				// } else {
+
 				fieldErr, err = v.fieldWithNameAndSingleTag(val, current, f, val[0], val[1], name)
+				// }
 
 				if err == nil {
 					return nil
@@ -759,6 +754,18 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 			fieldErr.Type = cField.typ
 
 			return fieldErr
+		}
+
+		if cTag.keyVals[0][0] == existsTag {
+			if (cField.kind == reflect.Ptr || cField.kind == reflect.Interface) && valueField.IsNil() {
+				return &FieldError{
+					Field: name,
+					Tag:   cTag.keyVals[0][0],
+					Value: f,
+					Param: cTag.keyVals[0][1],
+				}
+			}
+			continue
 		}
 
 		if fieldErr, err = v.fieldWithNameAndSingleTag(val, current, f, cTag.keyVals[0][0], cTag.keyVals[0][1], name); err != nil {
@@ -1001,6 +1008,10 @@ func (v *Validate) fieldWithNameAndSingleTag(val interface{}, current interface{
 	if key == omitempty {
 		return nil, nil
 	}
+
+	// if key == existsTag {
+	// 	continue
+	// }
 
 	valFunc, ok := v.validationFuncs[key]
 	if !ok {

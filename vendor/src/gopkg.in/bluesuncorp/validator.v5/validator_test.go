@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 	"reflect"
@@ -13,6 +14,11 @@ import (
 // - Run "go test" to run tests
 // - Run "gocov test | gocov report" to report on test converage by file
 // - Run "gocov test | gocov annotate -" to report on all code and functions, those ,marked with "MISS" were never called
+//
+// or
+//
+// -- may be a good idea to change to output path to somewherelike /tmp
+// go test -coverprofile cover.out && go tool cover -html=cover.out -o cover.html
 //
 //
 // go test -cpuprofile cpu.out
@@ -224,6 +230,124 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	NotEqualSkip(t, 2, val, nil)
 	EqualSkip(t, 2, val.Field, field)
 	EqualSkip(t, 2, val.Tag, expectedTag)
+}
+
+func TestExistsValidation(t *testing.T) {
+
+	jsonText := "{ \"truthiness2\": true }"
+
+	type Thing struct {
+		Truthiness *bool `json:"truthiness" validate:"exists,required"`
+	}
+
+	var ting Thing
+
+	err := json.Unmarshal([]byte(jsonText), &ting)
+	Equal(t, err, nil)
+	NotEqual(t, ting, nil)
+	Equal(t, ting.Truthiness, nil)
+
+	errs := validate.Struct(ting)
+	NotEqual(t, errs, nil)
+	AssertFieldError(t, errs, "Truthiness", "exists")
+
+	jsonText = "{ \"truthiness\": true }"
+
+	err = json.Unmarshal([]byte(jsonText), &ting)
+	Equal(t, err, nil)
+	NotEqual(t, ting, nil)
+	Equal(t, ting.Truthiness, true)
+
+	errs = validate.Struct(ting)
+	Equal(t, errs, nil)
+}
+
+func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
+
+	var m map[string]string
+
+	errs := validate.Field(m, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	m = map[string]string{}
+	errs = validate.Field(m, "required")
+	Equal(t, errs, nil)
+
+	var arr [5]string
+	errs = validate.Field(arr, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	arr[0] = "ok"
+	errs = validate.Field(arr, "required")
+	Equal(t, errs, nil)
+
+	var s []string
+	errs = validate.Field(s, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	s = []string{}
+	errs = validate.Field(s, "required")
+	Equal(t, errs, nil)
+
+	var c chan string
+	errs = validate.Field(c, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	c = make(chan string)
+	errs = validate.Field(c, "required")
+	Equal(t, errs, nil)
+
+	var tst *int
+	errs = validate.Field(tst, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	one := 1
+	tst = &one
+	errs = validate.Field(tst, "required")
+	Equal(t, errs, nil)
+
+	var iface interface{}
+
+	errs = validate.Field(iface, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	errs = validate.Field(iface, "omitempty,required")
+	Equal(t, errs, nil)
+
+	errs = validate.Field(iface, "")
+	Equal(t, errs, nil)
+
+	errs = validate.Field(iface, "len=1")
+	NotEqual(t, errs, nil)
+
+	var f func(string)
+
+	errs = validate.Field(f, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	f = func(name string) {}
+
+	errs = validate.Field(f, "required")
+	Equal(t, errs, nil)
+}
+
+func TestBadKeyValidation(t *testing.T) {
+	type Test struct {
+		Name string `validate:"required, "`
+	}
+
+	tst := &Test{
+		Name: "test",
+	}
+
+	PanicMatches(t, func() { validate.Struct(tst) }, "Invalid validation tag on field Name")
 }
 
 func TestFlattenValidation(t *testing.T) {
@@ -601,13 +725,29 @@ func TestInterfaceErrValidation(t *testing.T) {
 	Equal(t, err.IsPlaceholderErr, false)
 	Equal(t, err.IsSliceOrArray, false)
 	Equal(t, len(err.SliceOrArrayErrs), 0)
+
+	type MyStruct struct {
+		A, B string
+		C    interface{}
+	}
+
+	var a MyStruct
+
+	a.A = "value"
+	a.C = "nu"
+
+	errs = validate.Struct(a)
+	Equal(t, errs, nil)
 }
 
 func TestMapDiveValidation(t *testing.T) {
 
+	n := map[int]interface{}{0: nil}
+	err := validate.Field(n, "omitempty,required")
+
 	m := map[int]string{0: "ok", 3: "", 4: "ok"}
 
-	err := validate.Field(m, "len=3,dive,required")
+	err = validate.Field(m, "len=3,dive,required")
 	NotEqual(t, err, nil)
 	Equal(t, err.IsPlaceholderErr, true)
 	Equal(t, err.IsMap, true)
@@ -3702,14 +3842,14 @@ func TestStructSliceValidation(t *testing.T) {
 		Min:       []int{1, 2},
 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
 		MinMax:    []int{1, 2, 3, 4, 5},
-		OmitEmpty: []int{},
+		OmitEmpty: nil,
 	}
 
 	err := validate.Struct(tSuccess)
 	Equal(t, err, nil)
 
 	tFail := &TestSlice{
-		Required:  []int{},
+		Required:  nil,
 		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
 		Min:       []int{},
 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
@@ -3764,4 +3904,24 @@ func TestInvalidValidatorFunction(t *testing.T) {
 	}
 
 	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, fmt.Sprintf("Undefined validation function on field %s", ""))
+}
+
+func TestPoolObjectMaxSizeValidation(t *testing.T) {
+	// this will ensure that the pool objects are let go
+	// when the pool is saturated
+	validate.SetMaxStructPoolSize(0)
+
+	tSuccess := &TestSlice{
+		Required:  []int{1},
+		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
+		Min:       []int{1, 2},
+		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
+		MinMax:    []int{1, 2, 3, 4, 5},
+		OmitEmpty: nil,
+	}
+
+	for i := 0; i < 2; i++ {
+		err := validate.Struct(tSuccess)
+		Equal(t, err, nil)
+	}
 }
