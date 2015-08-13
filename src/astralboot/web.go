@@ -66,6 +66,8 @@ func NewWebServer(c *Config, l *Store, level int) *WebHandler {
 	wh.router.GET("/boot/:dist/:mac", wh.Starter)
 	// load the kernel and file system
 	wh.router.GET("/image/:dist/*path", wh.Images)
+	// serve the bin folder
+	wh.router.GET("/bin/*path", wh.Binaries)
 	// actions for each distro
 	wh.router.GET("/action/:dist/:action", wh.Action)
 	// configs for each distro
@@ -163,6 +165,24 @@ func (wh *WebHandler) Action(c *gin.Context) {
 	if err != nil {
 		logger.Critical("action fail %s", err)
 	}
+}
+
+//Binaries : hands back binaries in the data bin folder
+func (wh *WebHandler) Binaries(c *gin.Context) {
+	path := c.Params.ByName("path")
+	logger.Info("Get bin %s ", path)
+	fh, size, err := wh.fs.Get("bin/" + path)
+	defer fh.Close()
+	if err != nil {
+		logger.Error("web error ", err)
+		return
+	}
+	c.Writer.WriteHeader(200)
+	if size > 0 {
+		c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))
+	}
+	io.Copy(c.Writer, fh)
+	c.Writer.Flush()
 }
 
 // Images : hands back boot images and kernels
