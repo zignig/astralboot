@@ -29,9 +29,9 @@ func (wh *WebHandler) RocketHandler() {
 	if wh.config.IPFS == true {
 		if rocketRef == "" {
 			logger.Debug("Using rkt ref from base boot")
-			fs = &IPfsfs{wh.config.Refs.Boot + "/rkt"}
+			fs = NewIPfsfs(wh.config.Refs.Boot + "/rkt")
 		} else {
-			fs = &IPfsfs{rocketRef}
+			fs = NewIPfsfs(rocketRef)
 		}
 	} else {
 		fs = &Diskfs{"./data/rkt"}

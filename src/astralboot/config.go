@@ -101,7 +101,7 @@ func GetConfig(path string) (c *Config) {
 	var filesystem ROfs
 	if c.IPFS == true {
 		logger.Critical("Using IPFS for boot files")
-		filesystem = &IPfsfs{c.Refs.Boot}
+		filesystem = NewIPfsfs(c.Refs.Boot)
 	} else {
 		filesystem = &Diskfs{c.Data}
 	}

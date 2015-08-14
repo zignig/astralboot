@@ -66,9 +66,9 @@ func (wh *WebHandler) SpawnHandler() {
 		// if empty ref assume under base ref
 		if spawnRef == "" {
 			logger.Debug("using units under boot ref")
-			fs = &IPfsfs{wh.config.Refs.Boot}
+			fs = NewIPfsfs(wh.config.Refs.Boot)
 		} else {
-			fs = &IPfsfs{spawnRef}
+			fs = NewIPfsfs(spawnRef)
 		}
 	} else {
 		fs = &Diskfs{"./data"}
