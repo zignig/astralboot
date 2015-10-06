@@ -26,7 +26,7 @@ func (ds *DNSS) GetA(fqdn string) *dns.A {
 			// 0 TTL results in UB for DNS resolvers and generally causes problems.
 			Ttl: 1,
 		},
-		A: net.ParseIP("192.168.66.66"),
+		A: net.ParseIP("192.168.2.1"),
 	}
 }
 
