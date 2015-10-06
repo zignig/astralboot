@@ -70,6 +70,7 @@ func (wh *WebHandler) Discovery(c *gin.Context) {
 	logger.Debug(c.Request.RequestURI)
 	queryMap := c.Request.URL.Query()
 	_, ok := queryMap["ac-discovery"]
+	logger.Info("%v", queryMap)
 	if ok {
 		t := rktTmpl{}
 		t.BaseIP = wh.config.BaseIP
@@ -82,6 +83,18 @@ func (wh *WebHandler) Discovery(c *gin.Context) {
 			logger.Error("template error ", err)
 		}
 		return
+	} else {
+		AciName := c.Params.ByName("name")
+		fh, size, err := RocketACI.Get(AciName)
+		if err != nil {
+			logger.Error("Rocket file error : %s", err)
+			c.AbortWithStatus(404)
+		}
+		logger.Notice("Serving ACI : %s", AciName)
+		if size > 0 {
+			c.Writer.Header().Set("Content-Length", strconv.FormatInt(size, 10))
+		}
+		io.Copy(c.Writer, fh)
 	}
 }
 
@@ -96,4 +109,4 @@ var MetaDiscovery = `<!DOCTYPE html>
 `
 
 // AUTH line ( unused )
-//<meta name="ac-discovery-pubkeys" content="example.com/{{ .AciName }} https://example.com/pubkeys.gpg">
+// <meta name="ac-discovery-pubkeys" content="astral/{{ .AciName }} http://{{ .BaseIP}}/images/{{ .BaseIP }}/astral.gpg">
