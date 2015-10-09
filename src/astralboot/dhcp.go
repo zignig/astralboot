@@ -5,6 +5,7 @@ import (
 	dhcp "github.com/krolaw/dhcp4"
 
 	"net"
+	"strings"
 	"time"
 )
 
@@ -20,6 +21,7 @@ func dhcpServer(c *Config, l *Store) {
 			dhcp.OptionBootFileName:     []byte("undionly.kpxe"),
 			dhcp.OptionRouter:           []byte(c.Gateway.To4()),
 			dhcp.OptionDomainNameServer: []byte(c.DNSServer.To4()),
+			dhcp.OptionDomainName:       []byte(c.Domain),
 		},
 		skinnyOptions: dhcp.Options{
 			dhcp.OptionSubnetMask:       []byte(c.Subnet.To4()),
@@ -30,6 +32,19 @@ func dhcpServer(c *Config, l *Store) {
 		},
 	}
 	logger.Error("%v", dhcp.ListenAndServeIf(c.Interf, handler))
+}
+
+func SearchDomains(dom string) []byte {
+	tmp := strings.Split(dom, ".")
+	out := make([]byte, 0)
+	for _, i := range tmp {
+		out = append(out, byte(len(i)))
+		out = append(out, []byte(i)...)
+	}
+	out = append(out, []byte{0}...)
+	logger.Debug("sd : %v", out)
+	logger.Debug("sd : %s", tmp)
+	return out
 }
 
 //DHCPHandler : data structure for the dhcp server
