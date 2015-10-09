@@ -57,6 +57,8 @@ func NewWebServer(c *Config, l *Store, level int) *WebHandler {
 	}
 
 	wh.templates = t
+	// rocket handlers
+	wh.RocketHandler()
 	// chose and operating system
 	wh.router.GET("/choose", wh.Lister)
 	wh.router.GET("/choose/:dist/:mac", wh.Chooser)
@@ -72,8 +74,6 @@ func NewWebServer(c *Config, l *Store, level int) *WebHandler {
 	wh.router.GET("/action/:dist/:action", wh.Action)
 	// configs for each distro
 	wh.router.GET("/config/:dist/:action", wh.Config)
-	// rocket handlers
-	wh.RocketHandler()
 	if wh.config.Spawn {
 		wh.SpawnHandler()
 	}

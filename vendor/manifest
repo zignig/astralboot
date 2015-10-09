@@ -23,7 +23,7 @@
 		{
 			"importpath": "github.com/gin-gonic/gin",
 			"repository": "https://github.com/gin-gonic/gin",
-			"revision": "fd5d4294a5d5223d55fc76d7840f4b0ad91647bb",
+			"revision": "5f2f8d9cb443a2c31babfbaf7980370995522d5f",
 			"branch": "master"
 		},
 		{
@@ -35,7 +35,7 @@
 		{
 			"importpath": "github.com/manucorporat/sse",
 			"repository": "https://github.com/manucorporat/sse",
-			"revision": "fe6ea2c8e398672518ef204bf0fbd9af858d0e15",
+			"revision": "c142f0f1baea5cef7f98a8a6c222f6134368c1f5",
 			"branch": "master"
 		},
 		{
@@ -48,6 +48,12 @@
 			"importpath": "github.com/mattn/go-colorable",
 			"repository": "https://github.com/mattn/go-colorable",
 			"revision": "40e4aedc8fabf8c23e040057540867186712faa5",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/miekg/dns",
+			"repository": "https://github.com/miekg/dns",
+			"revision": "8fdd5c33f834fe1c16ede39b38a6bc822d32d07f",
 			"branch": "master"
 		},
 		{
@@ -94,7 +100,7 @@
 		{
 			"importpath": "gopkg.in/bluesuncorp/validator.v5",
 			"repository": "https://gopkg.in/bluesuncorp/validator.v5",
-			"revision": "98121ac23ff3d764f525d18d8de944d150e3c0fe",
+			"revision": "d8e0c4d93696f467eedc43f7f954b48eb6fe6ba8",
 			"branch": "master"
 		}
 	]
