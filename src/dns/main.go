@@ -64,7 +64,7 @@ func init() {
 	flag.IntVar(&config.RCache, "rcache", 0, "capacity of the response cache") // default to 0 for now
 	flag.IntVar(&config.RCacheTtl, "rcache-ttl", server.RCacheTtl, "TTL of the response cache")
 
-	flag.StringVar(&msg.PathPrefix, "path-prefix", env("SKYDNS_PATH_PREFIX", "skydns"), "backend(etcd) path prefix, default: skydns")
+	flag.StringVar(&msg.PathPrefix, "path-prefix", env("SKYDNS_PATH_PREFIX", "/"), "backend(etcd) path prefix, default: skydns")
 }
 
 func main() {
