@@ -2,10 +2,37 @@
 	"version": 0,
 	"dependencies": [
 		{
+			"importpath": "bitbucket.org/ww/goautoneg",
+			"repository": "https://bitbucket.org/ww/goautoneg",
+			"revision": "75cd24fc2f2c",
+			"branch": "default"
+		},
+		{
 			"importpath": "github.com/BurntSushi/toml",
 			"repository": "https://github.com/BurntSushi/toml",
 			"revision": "056c9bc7be7190eaa7715723883caffa5f8fa3e4",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/beorn7/perks/quantile",
+			"repository": "https://github.com/beorn7/perks",
+			"revision": "b965b613227fddccbfffe13eae360ed3fa822f8d",
+			"branch": "master",
+			"path": "/quantile"
+		},
+		{
+			"importpath": "github.com/coreos/go-etcd/etcd",
+			"repository": "https://github.com/coreos/go-etcd",
+			"revision": "de3514f25635bbfb024fdaf2a8d5f67378492675",
+			"branch": "master",
+			"path": "/etcd"
+		},
+		{
+			"importpath": "github.com/coreos/go-systemd/activation",
+			"repository": "https://github.com/coreos/go-systemd",
+			"revision": "0020698a980adf8a2c440d9be709edc85b54544a",
+			"branch": "master",
+			"path": "/activation"
 		},
 		{
 			"importpath": "github.com/coreos/go-systemd/unit",
@@ -25,6 +52,13 @@
 			"repository": "https://github.com/gin-gonic/gin",
 			"revision": "52fcc5dbf6e94df33ad313858fb94b713e9d1b4a",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/golang/protobuf/proto",
+			"repository": "https://github.com/golang/protobuf",
+			"revision": "3d2510a4dd961caffa2ae781669c628d82db700a",
+			"branch": "master",
+			"path": "/proto"
 		},
 		{
 			"importpath": "github.com/krolaw/dhcp4",
@@ -51,6 +85,13 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/matttproud/golang_protobuf_extensions/pbutil",
+			"repository": "https://github.com/matttproud/golang_protobuf_extensions",
+			"revision": "fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a",
+			"branch": "master",
+			"path": "/pbutil"
+		},
+		{
 			"importpath": "github.com/miekg/dns",
 			"repository": "https://github.com/miekg/dns",
 			"revision": "dfefa36553955889dbb9ef892d4bd116ec095ce2",
@@ -61,6 +102,65 @@
 			"repository": "https://github.com/op/go-logging",
 			"revision": "e8d5414f0947014548c2334044a0fac13187dfee",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/prometheus/client_golang/prometheus",
+			"repository": "https://github.com/prometheus/client_golang",
+			"revision": "e51041b3fa41cece0dca035740ba6411905be473",
+			"branch": "master",
+			"path": "/prometheus"
+		},
+		{
+			"importpath": "github.com/prometheus/client_model/go",
+			"repository": "https://github.com/prometheus/client_model",
+			"revision": "fa8ad6fec33561be4280a8f0514318c79d7f6cb6",
+			"branch": "master",
+			"path": "/go"
+		},
+		{
+			"importpath": "github.com/prometheus/common/expfmt",
+			"repository": "https://github.com/prometheus/common",
+			"revision": "1cc3e4c3b28fd42633a8c389c98cfbadf42621b1",
+			"branch": "master",
+			"path": "/expfmt"
+		},
+		{
+			"importpath": "github.com/prometheus/common/model",
+			"repository": "https://github.com/prometheus/common",
+			"revision": "1cc3e4c3b28fd42633a8c389c98cfbadf42621b1",
+			"branch": "master",
+			"path": "/model"
+		},
+		{
+			"importpath": "github.com/prometheus/procfs",
+			"repository": "https://github.com/prometheus/procfs",
+			"revision": "454a56f35412459b5e684fd5ec0f9211b94f002a",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/rcrowley/go-metrics",
+			"repository": "https://github.com/rcrowley/go-metrics",
+			"revision": "1ce93efbc8f9c568886b2ef85ce305b2217b3de3",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/skynetservices/skydns",
+			"repository": "https://github.com/skynetservices/skydns",
+			"revision": "c24a2b7d216dc1fbf8c8ae3195d64958f34bcaec",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/stathat/go",
+			"repository": "https://github.com/stathat/go",
+			"revision": "01d012b9ee2ecc107cb28b6dd32d9019ed5c1d77",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/ugorji/go/codec",
+			"repository": "https://github.com/ugorji/go",
+			"revision": "45ce7596ace4534e47b69051a92aef7b64ec7b3f",
+			"branch": "master",
+			"path": "/codec"
 		},
 		{
 			"importpath": "github.com/whyrusleeping/go-tftp/packet",
