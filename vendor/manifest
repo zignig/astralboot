@@ -10,7 +10,7 @@
 		{
 			"importpath": "github.com/coreos/go-systemd/unit",
 			"repository": "https://github.com/coreos/go-systemd",
-			"revision": "cea488b4e6855fee89b6c22a811e3c5baca861b6",
+			"revision": "0020698a980adf8a2c440d9be709edc85b54544a",
 			"branch": "master",
 			"path": "/unit"
 		},
@@ -23,7 +23,7 @@
 		{
 			"importpath": "github.com/gin-gonic/gin",
 			"repository": "https://github.com/gin-gonic/gin",
-			"revision": "5f2f8d9cb443a2c31babfbaf7980370995522d5f",
+			"revision": "52fcc5dbf6e94df33ad313858fb94b713e9d1b4a",
 			"branch": "master"
 		},
 		{
@@ -35,7 +35,7 @@
 		{
 			"importpath": "github.com/manucorporat/sse",
 			"repository": "https://github.com/manucorporat/sse",
-			"revision": "c142f0f1baea5cef7f98a8a6c222f6134368c1f5",
+			"revision": "fe6ea2c8e398672518ef204bf0fbd9af858d0e15",
 			"branch": "master"
 		},
 		{
@@ -53,7 +53,7 @@
 		{
 			"importpath": "github.com/miekg/dns",
 			"repository": "https://github.com/miekg/dns",
-			"revision": "8fdd5c33f834fe1c16ede39b38a6bc822d32d07f",
+			"revision": "dfefa36553955889dbb9ef892d4bd116ec095ce2",
 			"branch": "master"
 		},
 		{
@@ -79,28 +79,28 @@
 		{
 			"importpath": "golang.org/x/net/context",
 			"repository": "https://go.googlesource.com/net",
-			"revision": "4a71d182556e05375344f3da665304f3d5784ab4",
+			"revision": "b846920a172af75fe52c1400ae6094307be83b8a",
 			"branch": "master",
 			"path": "/context"
 		},
 		{
 			"importpath": "golang.org/x/net/internal/iana",
 			"repository": "https://go.googlesource.com/net",
-			"revision": "4a71d182556e05375344f3da665304f3d5784ab4",
+			"revision": "b846920a172af75fe52c1400ae6094307be83b8a",
 			"branch": "master",
 			"path": "/internal/iana"
 		},
 		{
 			"importpath": "golang.org/x/net/ipv4",
 			"repository": "https://go.googlesource.com/net",
-			"revision": "4a71d182556e05375344f3da665304f3d5784ab4",
+			"revision": "b846920a172af75fe52c1400ae6094307be83b8a",
 			"branch": "master",
 			"path": "/ipv4"
 		},
 		{
 			"importpath": "gopkg.in/bluesuncorp/validator.v5",
 			"repository": "https://gopkg.in/bluesuncorp/validator.v5",
-			"revision": "d8e0c4d93696f467eedc43f7f954b48eb6fe6ba8",
+			"revision": "d5acf1dac43705f8bfbb71d878e290e2bed3950b",
 			"branch": "master"
 		}
 	]

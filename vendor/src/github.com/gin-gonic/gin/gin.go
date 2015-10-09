@@ -40,7 +40,7 @@ type (
 		Handler string
 	}
 
-	// Engine is the framework's instance, it contains the muxer, middlewares and configuration settings.
+	// Engine is the framework's instance, it contains the muxer, middleware and configuration settings.
 	// Create an instance of Engine, by using New() or Default()
 	Engine struct {
 		RouterGroup
@@ -123,6 +123,7 @@ func (engine *Engine) allocateContext() *Context {
 
 func (engine *Engine) LoadHTMLGlob(pattern string) {
 	if IsDebugging() {
+		debugPrintLoadTemplate(template.Must(template.ParseGlob(pattern)))
 		engine.HTMLRender = render.HTMLDebug{Glob: pattern}
 	} else {
 		templ := template.Must(template.ParseGlob(pattern))
@@ -158,11 +159,11 @@ func (engine *Engine) NoMethod(handlers ...HandlerFunc) {
 	engine.rebuild405Handlers()
 }
 
-// Attachs a global middleware to the router. ie. the middlewares attached though Use() will be
+// Attachs a global middleware to the router. ie. the middleware attached though Use() will be
 // included in the handlers chain for every single request. Even 404, 405, static files...
 // For example, this is the right place for a logger or error management middleware.
-func (engine *Engine) Use(middlewares ...HandlerFunc) IRoutes {
-	engine.RouterGroup.Use(middlewares...)
+func (engine *Engine) Use(middleware ...HandlerFunc) IRoutes {
+	engine.RouterGroup.Use(middleware...)
 	engine.rebuild404Handlers()
 	engine.rebuild405Handlers()
 	return engine
@@ -227,11 +228,12 @@ func iterate(path, method string, routes RoutesInfo, root *node) RoutesInfo {
 // Run attaches the router to a http.Server and starts listening and serving HTTP requests.
 // It is a shortcut for http.ListenAndServe(addr, router)
 // Note: this method will block the calling goroutine undefinitelly unless an error happens.
-func (engine *Engine) Run(addr string) (err error) {
-	debugPrint("Listening and serving HTTP on %s\n", addr)
+func (engine *Engine) Run(addr ...string) (err error) {
 	defer func() { debugPrintError(err) }()
 
-	err = http.ListenAndServe(addr, engine)
+	address := resolveAddress(addr)
+	debugPrint("Listening and serving HTTP on %s\n", address)
+	err = http.ListenAndServe(address, engine)
 	return
 }
 

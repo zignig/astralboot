@@ -6,6 +6,7 @@ package gin
 
 import (
 	"errors"
+	"strings"
 
 	"testing"
 
@@ -199,7 +200,7 @@ func TestMiddlewareAbortHandlersChainAndNext(t *testing.T) {
 	assert.Equal(t, signature, "ACB")
 }
 
-// TestFailHandlersChain - ensure that Fail interrupt used middlewares in fifo order as
+// TestFailHandlersChain - ensure that Fail interrupt used middleware in fifo order as
 // as well as Abort
 func TestMiddlewareFailHandlersChain(t *testing.T) {
 	// SETUP
@@ -245,11 +246,5 @@ func TestMiddlewareWrite(t *testing.T) {
 	w := performRequest(router, "GET", "/")
 
 	assert.Equal(t, w.Code, 400)
-	assert.Equal(t, w.Body.String(), `hola
-<map><foo>bar</foo></map>{"foo":"bar"}
-{"foo":"bar"}
-event: test
-data: message
-
-`)
+	assert.Equal(t, strings.Replace(w.Body.String(), " ", "", -1), strings.Replace("hola\n<map><foo>bar</foo></map>{\"foo\":\"bar\"}\n{\"foo\":\"bar\"}\nevent:test\ndata:message\n\n", " ", "", -1))
 }
