@@ -98,8 +98,8 @@ import "github.com/gin-gonic/gin"
 
 ```go
 func main() {
-	// Creates a gin router with default middlewares:
-	// logger and recovery (crash-free) middlewares
+	// Creates a gin router with default middleware:
+	// logger and recovery (crash-free) middleware
 	router := gin.Default()
 
 	router.GET("/someGet", getting)
@@ -232,7 +232,7 @@ func main() {
 ```
 
 
-#### Blank Gin without middlewares by default
+#### Blank Gin without middleware by default
 
 Use
 
@@ -246,24 +246,24 @@ r := gin.Default()
 ```
 
 
-#### Using middlewares
+#### Using middleware
 ```go
 func main() {
 	// Creates a router without any middleware by default
 	r := gin.New()
 
-	// Global middlewares
+	// Global middleware
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	// Per route middlewares, you can add as many as you desire.
+	// Per route middleware, you can add as many as you desire.
 	r.GET("/benchmark", MyBenchLogger(), benchEndpoint)
 
 	// Authorization group
 	// authorized := r.Group("/", AuthRequired())
 	// exactly the same than:
 	authorized := r.Group("/")
-	// per group middlewares! in this case we use the custom created
+	// per group middleware! in this case we use the custom created
 	// AuthRequired() middleware just in the "authorized" group.
 	authorized.Use(AuthRequired())
 	{
@@ -471,7 +471,7 @@ r.GET("/test", func(c *gin.Context) {
 Both internal and external locations are supported.
 
 
-#### Custom Middlewares
+#### Custom Middleware
 
 ```go
 func Logger() gin.HandlerFunc {

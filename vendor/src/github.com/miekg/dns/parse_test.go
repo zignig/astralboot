@@ -569,7 +569,7 @@ test                          IN CNAME test.a.example.com.
 	t.Logf("%d RRs parsed in %.2f s (%.2f RR/s)", i, float32(delta)/1e9, float32(i)/(float32(delta)/1e9))
 }
 
-func ExampleZone() {
+func ExampleParseZone() {
 	zone := `$ORIGIN .
 $TTL 3600       ; 1 hour
 name                    IN SOA  a6.nstld.com. hostmaster.nic.name. (
@@ -799,7 +799,7 @@ func TestLowercaseTokens(t *testing.T) {
 	}
 }
 
-func ExampleGenerate() {
+func ExampleParseZone_generate() {
 	// From the manual: http://www.bind9.net/manual/bind/9.3.2/Bv9ARM.ch06.html#id2566761
 	zone := "$GENERATE 1-2 0 NS SERVER$.EXAMPLE.\n$GENERATE 1-8 $ CNAME $.0"
 	to := ParseZone(strings.NewReader(zone), "0.0.192.IN-ADDR.ARPA.", "")
@@ -905,16 +905,13 @@ func TestILNP(t *testing.T) {
 	}
 }
 
-func TestNsapGposEidNimloc(t *testing.T) {
+func TestGposEidNimloc(t *testing.T) {
 	dt := map[string]string{
-		"foo.bar.com.    IN  NSAP   21 47000580ffff000000321099991111222233334444": "foo.bar.com.\t3600\tIN\tNSAP\t0x47000580ffff000000321099991111222233334444",
-		"foo.bar.com.    IN  NSAP   0x47000580ffff000000321099991111222233334444":  "foo.bar.com.\t3600\tIN\tNSAP\t0x47000580ffff000000321099991111222233334444",
-		"host.school.de  IN  NSAP   17 39276f3100111100002222333344449876":         "host.school.de.\t3600\tIN\tNSAP\t0x39276f3100111100002222333344449876",
-		"444433332222111199990123000000ff. NSAP-PTR foo.bar.com.":                  "444433332222111199990123000000ff.\t3600\tIN\tNSAP-PTR\tfoo.bar.com.",
-		"lillee. IN  GPOS -32.6882 116.8652 10.0":                                  "lillee.\t3600\tIN\tGPOS\t-32.6882 116.8652 10.0",
-		"hinault. IN GPOS -22.6882 116.8652 250.0":                                 "hinault.\t3600\tIN\tGPOS\t-22.6882 116.8652 250.0",
-		"VENERA.   IN NIMLOC  75234159EAC457800920":                                "VENERA.\t3600\tIN\tNIMLOC\t75234159EAC457800920",
-		"VAXA.     IN EID     3141592653589793":                                    "VAXA.\t3600\tIN\tEID\t3141592653589793",
+		"444433332222111199990123000000ff. NSAP-PTR foo.bar.com.": "444433332222111199990123000000ff.\t3600\tIN\tNSAP-PTR\tfoo.bar.com.",
+		"lillee. IN  GPOS -32.6882 116.8652 10.0":                 "lillee.\t3600\tIN\tGPOS\t-32.6882 116.8652 10.0",
+		"hinault. IN GPOS -22.6882 116.8652 250.0":                "hinault.\t3600\tIN\tGPOS\t-22.6882 116.8652 250.0",
+		"VENERA.   IN NIMLOC  75234159EAC457800920":               "VENERA.\t3600\tIN\tNIMLOC\t75234159EAC457800920",
+		"VAXA.     IN EID     3141592653589793":                   "VAXA.\t3600\tIN\tEID\t3141592653589793",
 	}
 	for i, o := range dt {
 		rr, err := NewRR(i)
@@ -1240,8 +1237,8 @@ func TestNewPrivateKey(t *testing.T) {
 		}
 
 		switch newPrivKey := newPrivKey.(type) {
-		case *RSAPrivateKey:
-			(*rsa.PrivateKey)(newPrivKey).Precompute()
+		case *rsa.PrivateKey:
+			newPrivKey.Precompute()
 		}
 
 		if !reflect.DeepEqual(privkey, newPrivKey) {
@@ -1510,7 +1507,7 @@ func TestPackCAA(t *testing.T) {
 func TestParseURI(t *testing.T) {
 	lt := map[string]string{
 		"_http._tcp. IN URI   10 1 \"http://www.example.com/path\"": "_http._tcp.\t3600\tIN\tURI\t10 1 \"http://www.example.com/path\"",
-		"_http._tcp. IN URI   10 1 \"\"": "_http._tcp.\t3600\tIN\tURI\t10 1 \"\"",
+		"_http._tcp. IN URI   10 1 \"\"":                            "_http._tcp.\t3600\tIN\tURI\t10 1 \"\"",
 	}
 	for i, o := range lt {
 		rr, err := NewRR(i)

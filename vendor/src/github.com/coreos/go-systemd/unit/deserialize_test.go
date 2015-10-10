@@ -80,14 +80,15 @@ Environment= "FOO=BAR" "BAZ=QUX"
 			},
 		},
 
-		// line continuations respected
+		// line continuations unmodified
 		{
 			[]byte(`[Unit]
 Description= Unnecessarily wrapped \
     words here
 `),
 			[]*UnitOption{
-				&UnitOption{"Unit", "Description", "Unnecessarily wrapped      words here"},
+				&UnitOption{"Unit", "Description", `Unnecessarily wrapped \
+    words here`},
 			},
 		},
 
@@ -119,8 +120,8 @@ Description=Bar\
 Baz
 `),
 			[]*UnitOption{
-				&UnitOption{"Unit", "Description", "Bar # comment alpha"},
-				&UnitOption{"Unit", "Description", "Bar # comment bravo  Baz"},
+				&UnitOption{"Unit", "Description", "Bar\\\n# comment alpha"},
+				&UnitOption{"Unit", "Description", "Bar\\\n# comment bravo \\\nBaz"},
 			},
 		},
 
@@ -180,7 +181,7 @@ Description=Bar`),
 			[]byte(`[Unit]
 Description=Bar \`),
 			[]*UnitOption{
-				&UnitOption{"Unit", "Description", "Bar"},
+				&UnitOption{"Unit", "Description", "Bar \\"},
 			},
 		},
 
@@ -218,7 +219,7 @@ Description= words here `),
 Description= words here \
   `),
 			[]*UnitOption{
-				&UnitOption{"Unit", "Description", "words here"},
+				&UnitOption{"Unit", "Description", "words here \\\n"},
 			},
 		},
 
@@ -238,6 +239,25 @@ ExecStart=/bin/bash -c "while true; do echo \"ping\"; sleep 1; done"
 ExecStart=/bin/bash echo poof \  `),
 			[]*UnitOption{
 				&UnitOption{"Service", "ExecStart", `/bin/bash echo poof \`},
+			},
+		},
+		// a long unit file line that's just equal to the maximum permitted length
+		{
+			[]byte(`[Service]
+ExecStart=/bin/bash -c "echo ................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."`),
+			[]*UnitOption{
+				&UnitOption{"Service", "ExecStart", `/bin/bash -c "echo ................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."`},
+			},
+		},
+		// the same, but with a trailing newline
+		{
+			[]byte(`[Service]
+ExecStart=/bin/bash -c "echo ................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+Option=value
+`),
+			[]*UnitOption{
+				&UnitOption{"Service", "ExecStart", `/bin/bash -c "echo ................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."`},
+				&UnitOption{"Service", "Option", "value"},
 			},
 		},
 	}
@@ -301,7 +321,7 @@ Description=Foo
 	for i, tt := range tests {
 		output, err := Deserialize(bytes.NewReader(tt))
 		if err == nil {
-			t.Errorf("case %d: unexpected non-nil error, received nil", i)
+			t.Errorf("case %d: unexpected nil error", i)
 			t.Log("Output:")
 			logUnitOptionSlice(t, output)
 		}
@@ -311,5 +331,25 @@ Description=Foo
 func logUnitOptionSlice(t *testing.T, opts []*UnitOption) {
 	for idx, opt := range opts {
 		t.Logf("%d: %v", idx, opt)
+	}
+}
+
+func TestDeserializeLineTooLong(t *testing.T) {
+	tests := [][]byte{
+		// sane-looking unit file with an option line just greater than the maximum allowed (currently, 2048)
+		[]byte(`[Service]
+ExecStart=/bin/bash -c "echo ..................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................."
+`),
+		// single arbitrary line that's way too long
+		[]byte(`arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 character arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 character arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 character arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 character arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters arbitrary and extraordinarily long line that is far greater than 2048 characters`),
+	}
+
+	for i, tt := range tests {
+		output, err := Deserialize(bytes.NewReader(tt))
+		if err != ErrLineTooLong {
+			t.Errorf("case %d: unexpected err: %v", i, err)
+			t.Log("Output:")
+			logUnitOptionSlice(t, output)
+		}
 	}
 }
