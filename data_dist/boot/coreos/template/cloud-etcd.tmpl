@@ -28,6 +28,15 @@ coreos:
             Service=fleet.service
             [Install]
             WantedBy=sockets.target
+    - name: get_keys.service
+      command: start
+      content: |
+        [Unit]
+        After=rkt-metadata.service
+        Requires=rkt-metadata.service
+        [Service]
+        Type=oneshot
+        ExecStart= /usr/bin/echo yes | /usr/bin/rkt trust --insecure-allow-http --prefix=astralboot http://{{ .BaseIP }}/rocket/astral.gpg
     - name: spawn_launch.service
       command: start
       content: |
