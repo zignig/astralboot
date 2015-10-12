@@ -1,1 +1,1 @@
-classes = ["etcd","worker","kubemaster","kubenode"]
+classes = ["etcd","worker"]

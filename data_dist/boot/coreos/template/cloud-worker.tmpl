@@ -18,7 +18,7 @@ coreos:
         Requires=rkt-metadata.service
         [Service]
         Type=oneshot
-        ExecStart= /usr/bin/echo yes | /usr/bin/rkt trust --insecure-allow-http --prefix=astralboot http://{{ .BaseIP }}/rocket/astral.gpg
+        ExecStart=/bin/sh -c "/usr/bin/echo yes | sudo /usr/bin/rkt trust --insecure-allow-http --prefix=astralboot http://{{ .BaseIP }}/rocket/astral.gpg"
 write_files:
   - path: /etc/environment
     permissions: 0644
