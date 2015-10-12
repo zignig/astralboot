@@ -36,7 +36,7 @@ coreos:
         Requires=rkt-metadata.service
         [Service]
         Type=oneshot
-        ExecStart= /usr/bin/echo yes | /usr/bin/rkt trust --insecure-allow-http --prefix=astralboot http://{{ .BaseIP }}/rocket/astral.gpg
+        ExecStart=/bin/sh -c "/usr/bin/echo yes | /usr/bin/rkt trust --insecure-allow-http --prefix=astralboot http://{{ .BaseIP }}/rocket/astral.gpg"
     - name: spawn_launch.service
       command: start
       content: |
