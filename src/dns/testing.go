@@ -13,6 +13,7 @@ import (
 	"fmt"
 
 	"github.com/skynetservices/skydns/msg"
+	"strings"
 )
 
 // Config represents configuration for the Etcd backend - these values
@@ -33,8 +34,13 @@ func NewBackend() *Backend {
 
 func (g *Backend) Records(name string, exact bool) ([]msg.Service, error) {
 	path, star := msg.PathWithWildcard(name)
-	fmt.Println(path, star)
-	return nil, errors.New("FAIL")
+	bits := strings.Split(path, "/")
+	fmt.Println(bits, path, star)
+	srv := msg.Service{}
+	srv.Host = "192.168.5.1"
+	l := make([]msg.Service, 0)
+	l = append(l, srv)
+	return l, nil // errors.New("FAIL")
 }
 
 func (g *Backend) ReverseRecord(name string) (*msg.Service, error) {
