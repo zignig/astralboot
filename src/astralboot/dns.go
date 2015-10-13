@@ -7,19 +7,20 @@ package main
 import (
 	//"github.com/miekg/dns"
 
+	"errors"
 	"github.com/skynetservices/skydns/msg"
-	//	"github.com/skynetservices/skydns/server"
+	"github.com/skynetservices/skydns/server"
 	"sync"
 )
 
 type Domain struct {
-	prefix  string
-	entries map[string]*msg.Service
-	addLock sync.Mutex
+	prefix    string
+	entries   map[string]*msg.Service
+	addLock   sync.Mutex
+	DNSConfig *server.Config
 }
 
 func NewDomain(prefix string) (d *Domain) {
-	msg.PathPrefix = "astralboot"
 	d = &Domain{}
 	d.prefix = msg.Path(prefix)
 	d.entries = make(map[string]*msg.Service)
@@ -28,10 +29,18 @@ func NewDomain(prefix string) (d *Domain) {
 
 func NewDnsServer(c *Config, leases *Store) (d *Domain) {
 	d = NewDomain(c.Domain)
+	msg.PathPrefix = "astralboot"
 	active := leases.leases.Active()
+	// add the astralboot
 	d.Add("astralboot", c.BaseIP.String())
+	// add all the active nodes
 	for _, j := range active {
 		d.Add(j.Name, j.IP)
+	}
+	// Create the config
+	d.DNSConfig = &server.Config{
+		Domain:  c.Domain,
+		DnsAddr: c.BaseIP.String() + ":53",
 	}
 	return d
 }
@@ -40,7 +49,11 @@ func (d *Domain) Run() {
 	for i, j := range d.entries {
 		logger.Critical("%s %v", i, j)
 	}
+	server.Metrics()
+	server.SetDefaults(d.DNSConfig)
+	s := server.New(d, d.DNSConfig)
 	logger.Critical("RUN DNS SERVER HERE")
+	s.Run()
 }
 
 func (d *Domain) LongName(name string) (long string) {
@@ -56,4 +69,15 @@ func (d *Domain) Add(name string, address string) {
 		Host: address,
 	}
 	d.entries[d.LongName(name)] = mess
+}
+
+// skydns interface for serving
+
+func (d *Domain) Records(name string, exact bool) ([]msg.Service, error) {
+	logger.Critical("fetch record %s", name)
+	return nil, errors.New("FAIL")
+}
+
+func (d *Domain) ReverseRecord(name string) (*msg.Service, error) {
+	return nil, errors.New("FAIL REVERSE")
 }
