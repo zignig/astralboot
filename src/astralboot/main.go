@@ -3,7 +3,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	//"fmt"
 )
 
 var configFile string
@@ -29,7 +29,7 @@ func main() {
 		logLevel = 3
 	}
 	LogSetup(logLevel)
-	fmt.Println(banner)
+	//fmt.Println(banner)
 	logger.Notice("Starting Astralboot Server")
 	conf := GetConfig(configFile)
 	logger.Notice("Using interface : %s", conf.Interf)
@@ -40,6 +40,10 @@ func main() {
 	}
 	// leases json database
 	leases := NewStore(conf)
+
+	logger.Info("starting dns")
+	d := NewDnsServer(conf, leases)
+	go d.Run()
 	logger.Info("starting tftp")
 	go tftpServer(conf)
 	logger.Info("start dhcp")

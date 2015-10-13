@@ -41,9 +41,9 @@ type Config struct {
 	Gateway   net.IP
 	Subnet    net.IP
 	DNSServer net.IP
-	Domain    string `toml:"Domain,omitempty"`
-	DBname    string `toml:"DBname,omitempty"`
-	Data      string `toml:"Data,omitempty"`
+	Domain    string `toml:"Domain",omitempty`
+	DBname    string `toml:"DBname",omitempty`
+	Data      string `toml:"Data",omitempty`
 	IPFS      bool
 	Refs      *Refs // ipfs references
 	OSList    map[string]*OperatingSystem
@@ -90,9 +90,10 @@ func GetConfig(path string) (c *Config) {
 	if c.DBname == "" {
 		c.DBname = "./machines.json"
 	}
-
+	logger.Critical("->%s<-", c.Domain)
 	if c.Domain == "" {
 		c.Domain = "erf"
+		logger.Critical("should be ->%s<-", c.Domain)
 	}
 	// Data directory
 	if c.Data == "" {

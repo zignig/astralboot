@@ -35,11 +35,12 @@ assumes a working golang environment.
 
 ```sh
 
-go get github.com/zignig/astralboot
+git clone github.com/zignig/astralboot
 
-cd $GOPATH/src/github.com/zignig/astralboot
+cd astralboot
 
-go build
+gb build
+
 ```
 
 also the ipfs service, which is currently  in alpha , is available from http://github.com/ipfs/go-ipfs

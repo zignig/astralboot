@@ -34,6 +34,18 @@ type Lease struct {
 
 // Lease List functions
 
+// Get all the active leases
+func (ll LeaseList) Active() (l []*Lease) {
+	l = make([]*Lease, 0)
+	for _, i := range ll.Leases {
+		if i.Active {
+			l = append(l, i)
+			logger.Debug("%v", i)
+		}
+	}
+	return l
+}
+
 //IP return a lease for the given IP addresss
 func (ll LeaseList) IP(ip net.IP) (l *Lease, err error) {
 	for _, i := range ll.Leases {
