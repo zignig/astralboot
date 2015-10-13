@@ -40,6 +40,10 @@ func main() {
 	}
 	// leases json database
 	leases := NewStore(conf)
+
+	logger.Info("starting dns")
+	d := NewDnsServer(conf, leases)
+	go d.Run()
 	logger.Info("starting tftp")
 	go tftpServer(conf)
 	logger.Info("start dhcp")
