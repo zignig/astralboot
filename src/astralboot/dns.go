@@ -48,7 +48,7 @@ func (d *Domain) Run() {
 	for i, j := range d.entries {
 		logger.Info("%s %v", i, j)
 	}
-	server.Metrics()
+	//server.Metrics()
 	server.SetDefaults(d.DNSConfig)
 	s := server.New(d, d.DNSConfig)
 	s.Run()
@@ -86,3 +86,8 @@ func (d *Domain) Records(name string, exact bool) ([]msg.Service, error) {
 func (d *Domain) ReverseRecord(name string) (*msg.Service, error) {
 	return nil, errors.New("FAIL REVERSE")
 }
+
+func (d *Domain) HasSynced() (bool) {
+	return true
+}
+

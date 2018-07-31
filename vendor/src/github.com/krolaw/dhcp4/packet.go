@@ -175,10 +175,11 @@ func ReplyPacket(req Packet, mt MessageType, serverId, yIAddr net.IP, leaseDurat
 	p.SetYIAddr(yIAddr)
 	p.SetGIAddr(req.GIAddr())
 	p.SetCHAddr(req.CHAddr())
-	p.SetSecs(req.Secs())
 	p.AddOption(OptionDHCPMessageType, []byte{byte(mt)})
 	p.AddOption(OptionServerIdentifier, []byte(serverId))
-	p.AddOption(OptionIPAddressLeaseTime, OptionsLeaseTime(leaseDuration))
+	if leaseDuration > 0 {
+		p.AddOption(OptionIPAddressLeaseTime, OptionsLeaseTime(leaseDuration))
+	}
 	for _, o := range options {
 		p.AddOption(o.Code, o.Value)
 	}
@@ -318,6 +319,8 @@ const (
 
 	OptionTZPOSIXString    OptionCode = 100
 	OptionTZDatabaseString OptionCode = 101
+
+	OptionDomainSearch OptionCode = 119
 
 	OptionClasslessRouteFormat OptionCode = 121
 )

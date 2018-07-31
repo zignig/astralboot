@@ -33,11 +33,13 @@ const (
 	// but this would introduce an (unfortunate) dependency on cgo
 	SYSTEMD_LINE_MAX = 2048
 
-	// characters that systemd considers indicate a newline
+	// SYSTEMD_NEWLINE defines characters that systemd considers indicators
+	// for a newline.
 	SYSTEMD_NEWLINE = "\r\n"
 )
 
 var (
+	// ErrLineTooLong gets returned when a line is too long for systemd to handle.
 	ErrLineTooLong = fmt.Errorf("line too long (max %d bytes)", SYSTEMD_LINE_MAX)
 )
 
@@ -70,7 +72,6 @@ type lexer struct {
 }
 
 func (l *lexer) lex() {
-	var err error
 	defer func() {
 		close(l.optchan)
 		close(l.errchan)
@@ -93,6 +94,7 @@ func (l *lexer) lex() {
 			}
 		}
 
+		var err error
 		next, err = next()
 		if err != nil {
 			l.errchan <- err
@@ -211,14 +213,12 @@ func (l *lexer) lexOptionNameFunc(section string) lexStep {
 		}
 
 		name := strings.TrimSpace(partial.String())
-		return l.lexOptionValueFunc(section, name), nil
+		return l.lexOptionValueFunc(section, name, bytes.Buffer{}), nil
 	}
 }
 
-func (l *lexer) lexOptionValueFunc(section, name string) lexStep {
+func (l *lexer) lexOptionValueFunc(section, name string, partial bytes.Buffer) lexStep {
 	return func() (lexStep, error) {
-		var partial bytes.Buffer
-
 		for {
 			line, eof, err := l.toEOL()
 			if err != nil {
@@ -240,6 +240,8 @@ func (l *lexer) lexOptionValueFunc(section, name string) lexStep {
 			if !eof {
 				partial.WriteRune('\n')
 			}
+
+			return l.lexOptionValueFunc(section, name, partial), nil
 		}
 
 		val := partial.String()

@@ -3,6 +3,7 @@ package main
 
 import (
 	dhcp "github.com/krolaw/dhcp4"
+	conn  "github.com/krolaw/dhcp4/conn"
 
 	"net"
 	"strings"
@@ -31,7 +32,20 @@ func dhcpServer(c *Config, l *Store) {
 			dhcp.OptionDomainName:       []byte(c.Domain),
 		},
 	}
-	logger.Error("%v", dhcp.ListenAndServeIf(c.Interf, handler))
+	logger.Error("%v", LAS(c.BaseIP,handler))
+//	logger.Error("%v", dhcp.ListenAndServeIf("virbr0",handler))
+}
+
+func LAS(addr net.IP,handler dhcp.Handler) error {
+	logger.Critical(addr.String())
+	//l, err := net.ListenPacket("udp4", "192.168.50.255:67")
+	//l, err := conn.NewUDP4FilterListener("virbr0",":67")
+	l, err := conn.NewUDP4BoundListener("virbr0",":67")
+	if err != nil {
+		return err
+	}
+	defer l.Close()
+	return dhcp.Serve(l, handler)
 }
 
 func SearchDomains(dom string) []byte {
@@ -111,5 +125,6 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		logger.Debug("Decline")
 		break
 	}
+	logger.Debug("NO REQUEST")
 	return nil
 }

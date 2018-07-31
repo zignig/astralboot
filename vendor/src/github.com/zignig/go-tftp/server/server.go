@@ -15,14 +15,14 @@ import (
 type logme interface {
 	Debug(format string, args ...interface{})
 	Critical(format string, args ...interface{})
-	Error(format string, args ...interface{})
+	Error(args ...interface{})
 	Warning(format string, args ...interface{})
 }
 
 type dummyLog struct{}
 
 func (d *dummyLog) Debug(format string, args ...interface{})    { fmt.Printf("Debug : %s\n", format) }
-func (d *dummyLog) Error(format string, args ...interface{})    { fmt.Printf("Error : %s\n", format) }
+func (d *dummyLog) Error(args ...interface{})                   { fmt.Printf("Error : %s\n", args) }
 func (d *dummyLog) Warning(format string, args ...interface{})  { fmt.Printf("Warning : %s\n", format) }
 func (d *dummyLog) Critical(format string, args ...interface{}) { fmt.Printf("Critical : %s\n", format) }
 

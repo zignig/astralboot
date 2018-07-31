@@ -1,14 +1,22 @@
+// Copyright 2018 The Prometheus Authors
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package procfs
 
 import "testing"
 
 func TestProcIO(t *testing.T) {
-	fs, err := NewFS("fixtures")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	p, err := fs.NewProc(26231)
+	p, err := FS("fixtures").NewProc(26231)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -20,30 +28,19 @@ func TestProcIO(t *testing.T) {
 
 	for _, test := range []struct {
 		name string
-		want uint64
-		got  uint64
-	}{
-		{name: "RChar", want: 750339, got: s.RChar},
-		{name: "WChar", want: 818609, got: s.WChar},
-		{name: "SyscR", want: 7405, got: s.SyscR},
-		{name: "SyscW", want: 5245, got: s.SyscW},
-		{name: "ReadBytes", want: 1024, got: s.ReadBytes},
-		{name: "WriteBytes", want: 2048, got: s.WriteBytes},
-	} {
-		if test.want != test.got {
-			t.Errorf("want %s %d, got %d", test.name, test.want, test.got)
-		}
-	}
-
-	for _, test := range []struct {
-		name string
 		want int64
-		got  int64
+		have int64
 	}{
-		{name: "CancelledWriteBytes", want: -1024, got: s.CancelledWriteBytes},
+		{name: "RChar", want: 750339, have: int64(s.RChar)},
+		{name: "WChar", want: 818609, have: int64(s.WChar)},
+		{name: "SyscR", want: 7405, have: int64(s.SyscR)},
+		{name: "SyscW", want: 5245, have: int64(s.SyscW)},
+		{name: "ReadBytes", want: 1024, have: int64(s.ReadBytes)},
+		{name: "WriteBytes", want: 2048, have: int64(s.WriteBytes)},
+		{name: "CancelledWriteBytes", want: -1024, have: s.CancelledWriteBytes},
 	} {
-		if test.want != test.got {
-			t.Errorf("want %s %d, got %d", test.name, test.want, test.got)
+		if test.want != test.have {
+			t.Errorf("want %s %d, have %d", test.name, test.want, test.have)
 		}
 	}
 }

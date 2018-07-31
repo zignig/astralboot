@@ -1,4 +1,4 @@
-FROM alpine:3.1
+FROM alpine:latest
 MAINTAINER Miek Gieben <miek@miek.nl> (@miekg)
 
 RUN apk --update add bind-tools && rm -rf /var/cache/apk/*

@@ -22,8 +22,9 @@ func TestPanicInHandler(t *testing.T) {
 	// RUN
 	w := performRequest(router, "GET", "/recovery")
 	// TEST
-	assert.Equal(t, w.Code, 500)
-	assert.Contains(t, buffer.String(), "Panic recovery -> Oupps, Houston, we have a problem")
+	assert.Equal(t, 500, w.Code)
+	assert.Contains(t, buffer.String(), "GET /recovery")
+	assert.Contains(t, buffer.String(), "Oupps, Houston, we have a problem")
 	assert.Contains(t, buffer.String(), "TestPanicInHandler")
 }
 
@@ -38,5 +39,5 @@ func TestPanicWithAbort(t *testing.T) {
 	// RUN
 	w := performRequest(router, "GET", "/recovery")
 	// TEST
-	assert.Equal(t, w.Code, 500) // NOT SURE
+	assert.Equal(t, 400, w.Code)
 }

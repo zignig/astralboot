@@ -57,7 +57,7 @@ func tftpServer(conf *Config) {
 	if err != nil {
 		logger.Fatal("TFTP preload error : %s", err)
 	}
-	s := tftp.NewServer("", HandleRead, HandleWrite, logger)
+	s := tftp.NewServer("", HandleRead, HandleWrite,nil)// logger)
 	e := s.Serve(conf.BaseIP.String() + ":69")
 	if e != nil {
 		logger.Error("tftp error, %s", e)

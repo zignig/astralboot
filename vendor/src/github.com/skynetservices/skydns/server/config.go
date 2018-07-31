@@ -19,6 +19,7 @@ const (
 	SCacheCapacity = 10000
 	RCacheCapacity = 100000
 	RCacheTtl      = 60
+	Ndots          = 2
 )
 
 // Config provides options to the SkyDNS resolver.
@@ -37,7 +38,9 @@ type Config struct {
 	DNSSEC     string `json:"dnssec,omitempty"`
 	// Round robin A/AAAA replies. Default is true.
 	RoundRobin bool `json:"round_robin,omitempty"`
-	// List of ip:port, seperated by commas of recursive nameservers to forward queries to.
+	// Round robin selection of nameservers from among those listed, rather than have all forwarded requests try the first listed server first every time.
+	NSRotate bool `json:"ns_rotate,omitempty"`
+	// List of ip:port, separated by commas of recursive nameservers to forward queries to.
 	Nameservers []string `json:"nameservers,omitempty"`
 	// Never provide a recursive service.
 	NoRec       bool          `json:"no_rec,omitempty"`
@@ -56,6 +59,8 @@ type Config struct {
 	RCacheTtl int `json:"rcache_ttl,omitempty"`
 	// How many labels a name should have before we allow forwarding. Default to 2.
 	Ndots int `json:"ndot,omitempty"`
+	// Etcd flag that dictates if etcd version 3 is supported during skydns' run. Default to false.
+	Etcd3 bool
 
 	// DNSSEC key material
 	PubKey  *dns.DNSKEY   `json:"-"`
@@ -63,6 +68,8 @@ type Config struct {
 	PrivKey crypto.Signer `json:"-"`
 
 	Verbose bool `json:"-"`
+
+	Version bool
 
 	// some predefined string "constants"
 	localDomain string // "local.dns." + config.Domain
@@ -108,7 +115,7 @@ func SetDefaults(config *Config) error {
 		config.RCacheTtl = RCacheTtl
 	}
 	if config.Ndots <= 0 {
-		config.Ndots = 2
+		config.Ndots = Ndots
 	}
 
 	if len(config.Nameservers) == 0 {

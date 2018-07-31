@@ -1,8 +1,13 @@
+// Copyright 2017 Manu Martinez-Almeida.  All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file.
+
 package gin
 
 import (
 	"html/template"
 	"net/http"
+	"os"
 	"testing"
 )
 
@@ -36,7 +41,7 @@ func BenchmarkManyHandlers(B *testing.B) {
 }
 
 func Benchmark5Params(B *testing.B) {
-	DefaultWriter = newMockWriter()
+	DefaultWriter = os.Stdout
 	router := New()
 	router.Use(func(c *Context) {})
 	router.GET("/param/:param1/:params2/:param3/:param4/:param5", func(c *Context) {})
@@ -53,8 +58,6 @@ func BenchmarkOneRouteJSON(B *testing.B) {
 	})
 	runRequest(B, router, "GET", "/json")
 }
-
-var htmlContentType = []string{"text/html; charset=utf-8"}
 
 func BenchmarkOneRouteHTML(B *testing.B) {
 	router := New()

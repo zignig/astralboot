@@ -1,5 +1,5 @@
 # SkyDNS [![Build Status](https://travis-ci.org/skynetservices/skydns.png?branch=master)](https://travis-ci.org/skynetservices/skydns)
-*Version 2.5.2c*
+*Version 2.5.3a*
 
 SkyDNS is a distributed service for announcement and discovery of services built
 on top of [etcd](https://github.com/coreos/etcd). It utilizes DNS queries to
@@ -17,7 +17,7 @@ has seen some changes, most notably the ability to use etcd as a backend.
 SkyDNS2:
 
 * Does away with Raft and uses etcd (which uses raft).
-* Makes is possible to query arbitrary domain names.
+* Makes it possible to query arbitrary domain names.
 * Is a thin layer above etcd, that translates etcd keys and values to the DNS.
 * Does DNSSEC with NSEC3 instead of NSEC.
 
@@ -79,8 +79,10 @@ SkyDNS' configuration is stored in etcd as a JSON object under the key
 * `scache`: the capacity of the DNSSEC signature cache, defaults to 10000 signatures if not set.
 * `rcache`: the capacity of the response cache, defaults to 0 messages if not set.
 * `rcache_ttl`: the TTL of the response cache, defaults to 60 if not set.
+* `ndots`: how many labels a name should have before we allow forwarding. Default to 2.
 * `systemd`: bind to socket(s) activated by systemd (ignores -addr).
 * `path-prefix`: backend(etcd) path prefix, defaults to skydns (i.e. if it is set to `mydns`, the SkyDNS's configuration object should be stored under the key `/mydns/config`).
+* `etcd3`: flag that toggles the etcd version 3 support by skydns during runtime. Defaults to false.
 
 To set the configuration, use something like:
 
@@ -102,7 +104,7 @@ precedence.
     SkyDNS receives a query for the name `local.dns.skydns.local` it will fetch this service and return it.
     For instance: `-local e2016c14-fbba-11e3-ae08-10604b7efbe2.dockerhosts.skydns.local` and then
 
-        curl -XPUT http://127.0.0.1:4001/v2/keys/skydns/local/skydns/dockerhosts/2016c14-fbba-11e3-ae08-10604b7efbe2 \
+        curl -XPUT http://127.0.0.1:4001/v2/keys/skydns/local/skydns/dockerhosts/e2016c14-fbba-11e3-ae08-10604b7efbe2 \
             -d value='{"host":"10.1.1.16"}'
 
     To register the local IP address. Now when SkyDNS receives a query for local.dns.skydns.local it will fetch the above
@@ -117,23 +119,21 @@ precedence.
 
 SkyDNS uses these environment variables:
 
-* `ETCD_MACHINES` - list of etcd machines, "http://localhost:4001,http://etcd.example.com:4001".
-* `ETCD_TLSKEY` - path of TLS client certificate - private key.
-* `ETCD_TLSPEM` - path of TLS client certificate - public key.
-* `ETCD_CACERT` - path of TLS certificate authority public key
-* `SKYDNS_ADDR` - specify address to bind to
-* `SKYDNS_DOMAIN` - set a default domain if not specified by etcd config
+* `ETCD_MACHINES` - list of etcd machines, "http://localhost:4001,http://etcd.example.com:4001". Overwrite with `-machines` string flag.
+* `ETCD_TLSKEY` - path of TLS client certificate - private key. Overwrite with `-tls-key` string flag.
+* `ETCD_TLSPEM` - path of TLS client certificate - public key. Overwrite with `-tls-pem` string flag.
+* `ETCD_CACERT` - path of TLS certificate authority public key. Overwrite with `-ca-cert` string flag.
+* `ETCD_USERNAME` - username used for basic auth. Overwrite with `-username` string flag.
+* `ETCD_PASSWORD` - password used for basic auth. Overwrite with `-password` string flag.
+* `SKYDNS_ADDR` - specify address to bind to. Overwrite with `-addr` string flag.
+* `SKYDNS_DOMAIN` - set a default domain if not specified by etcd config. Overwrite with `-domain` string flag.
 * `SKYDNS_NAMESERVERS` - set a list of nameservers to forward DNS requests to
-  when not authoritative for a domain, "8.8.8.8:53,8.8.4.4:53".
-* `SKYDNS_PATH_PREFIX` - backend(etcd) path prefix, defaults to skydns (i.e. if it is set to `mydns`, the SkyDNS's configuration object should be stored under the key `/mydns/config`).
+  when not authoritative for a domain, "8.8.8.8:53,8.8.4.4:53". Overwrite with `-nameservers` string flag.
+* `SKYDNS_PATH_PREFIX` - backend(etcd) path prefix, defaults to skydns (i.e. if it is set to `mydns`, the SkyDNS's configuration object should be stored under the key `/mydns/config`). Overwrite with `-path-prefix` string flag.
+* `SKYDNS_SYSTEMD`: set to `true` to bind to socket(s) activated by systemd (ignores SKYDNS_ADDR). Overwrite with `-systemd` bool flag.
+* `SKYDNS_NDOTS`: how many labels a name should have before we allow forwarding. Default to 2.
 
-And these are used for statistics:
-
-* `GRAPHITE_SERVER`
-* `GRAPHITE_PREFIX`
-* `STATHAT_USER`
-
-And for [Prometheus](http://prometheus.io/) the following environment variables
+For [Prometheus](http://prometheus.io/) the following environment variables
 are available:
 
 * `PROMETHEUS_PORT`: port where the HTTP server for prometheus will run.
@@ -146,24 +146,11 @@ be enabled.
 
 Current counters are:
 
-*  promExternalRequestCount, counts requests to external recursive nameservers
-   with the label value "recursive", the number of stub lookups (label value is
-   "stub"), and "lookup", which are recursive lookups done while resolving data
-   from Etcd.
-*  promRequestCount, number of requests with make with "udp" and "tcp", these
-   are also the label values used.
-*  promErrorCount, counts errors from authoritative answers only! Label values
-   used are "nxomdain", "nodata", "truncated", "refused" and "overflow".
-*  promCacheSize, current cache size in number of elements. Label values are
-   "response" and "signature" (DNSSEC cache)
-*  promCacheMiss, counter for cache misses. Label values are "response" and
-   "signature".
-*  promDnssecOkCount, number of requests that have the DO bit set.
-*  promRequestDuration: time in seconds it took to handle this request. Label
-   values are "tcp" and "udp".
-*  promResponseSize: size in bytes of the response. Label values are "tcp" and
-   "udp".
-
+*  `dns_request_count_total`, total count of request made against SkyDNS.
+*  `dns_request_duration_seconds`, duration of the request handling in seconds.
+*  `dns_response_size_bytes`, size of the repsonses in bytes.
+*  `dns_error_count_total`, total count of responses containing errors.
+*  `dns_cachemiss_count_total`, total count of cache misses.
 
 ### SSL Usage and Authentication with Client Certificates
 
@@ -433,7 +420,7 @@ Doing an A/AAAA query for this will lead to the following response:
     www.miek.nl.            3600    IN      CNAME   a.miek.nl.
     a.miek.nl.              3600    IN      A       176.58.119.54
 
-The first CNAME is generated from within SkyDNS, the other CNANE is returned
+The first CNAME is generated from within SkyDNS, the other CNAME is returned
 from the remote name server.
 
 
@@ -737,7 +724,7 @@ SkyDNS you must make sure if does not need glibc when run:
 
 Build SkyDNS with:
 
-    % go build -a -tags netgo -installsuffix netgo
+    % GOOS=linux go build -a -tags netgo -installsuffix netgo
 
 And then build the docker image:
 
@@ -747,27 +734,3 @@ If you run it, SkyDNS needs to access Etcd (or whatever backend), which usually
 runs on the host server (i.e. when using CoreOS), to make that work, just run:
 
     docker run --net host <image>
-
-
-# License
-
-The MIT License (MIT)
-
-Copyright © 2014 The SkyDNS Authors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

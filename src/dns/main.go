@@ -18,7 +18,6 @@ import (
 
 	"github.com/skynetservices/skydns/msg"
 	"github.com/skynetservices/skydns/server"
-	"github.com/skynetservices/skydns/stats"
 )
 
 var (
@@ -93,8 +92,8 @@ func main() {
 	backend := NewBackend()
 	s := server.New(backend, config)
 
-	stats.Collect()  // Graphite
-	server.Metrics() // Prometheus
+	//stats.Collect()  // Graphite
+	//server.Metrics() // Prometheus
 
 	if err := s.Run(); err != nil {
 		log.Fatalf("skydns: %s", err)

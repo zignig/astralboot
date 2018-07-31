@@ -15,6 +15,7 @@ package stathat
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -71,8 +72,23 @@ type statReport struct {
 	apiType   apiKind
 }
 
-// Reporter is a StatHat client that can report stat values/counts to the servers.
-type Reporter struct {
+// Reporter describes an interface for communicating with the StatHat API
+type Reporter interface {
+	PostCount(statKey, userKey string, count int) error
+	PostCountTime(statKey, userKey string, count int, timestamp int64) error
+	PostCountOne(statKey, userKey string) error
+	PostValue(statKey, userKey string, value float64) error
+	PostValueTime(statKey, userKey string, value float64, timestamp int64) error
+	PostEZCountOne(statName, ezkey string) error
+	PostEZCount(statName, ezkey string, count int) error
+	PostEZCountTime(statName, ezkey string, count int, timestamp int64) error
+	PostEZValue(statName, ezkey string, value float64) error
+	PostEZValueTime(statName, ezkey string, value float64, timestamp int64) error
+	WaitUntilFinished(timeout time.Duration) bool
+}
+
+// BasicReporter is a StatHat client that can report stat values/counts to the servers.
+type BasicReporter struct {
 	reports chan *statReport
 	done    chan bool
 	client  *http.Client
@@ -80,10 +96,18 @@ type Reporter struct {
 }
 
 // NewReporter returns a new Reporter.  You must specify the channel bufferSize and the
-// goroutine poolSize.  You can pass in nil for the transport and it will use the
-// default http transport.
-func NewReporter(bufferSize, poolSize int, transport http.RoundTripper) *Reporter {
-	r := new(Reporter)
+// goroutine poolSize.  You can pass in nil for the transport and it will create an
+// http transport with MaxIdleConnsPerHost set to the goroutine poolSize.  Note if you
+// pass in your own transport, it's a good idea to have its MaxIdleConnsPerHost be set
+// to at least the poolSize to allow for effective connection reuse.
+func NewReporter(bufferSize, poolSize int, transport http.RoundTripper) Reporter {
+	r := new(BasicReporter)
+	if transport == nil {
+		transport = &http.Transport{
+			// Allow for an idle connection per goroutine.
+			MaxIdleConnsPerHost: poolSize,
+		}
+	}
 	r.client = &http.Client{Transport: transport}
 	r.reports = make(chan *statReport, bufferSize)
 	r.done = make(chan bool)
@@ -93,6 +117,38 @@ func NewReporter(bufferSize, poolSize int, transport http.RoundTripper) *Reporte
 		go r.processReports()
 	}
 	return r
+}
+
+type statCache struct {
+	counterStats map[string]int
+	valueStats   map[string][]float64
+}
+
+func (sc *statCache) AverageValue(statName string) float64 {
+	total := 0.0
+	values := sc.valueStats[statName]
+	if len(values) == 0 {
+		return total
+	}
+	for _, value := range values {
+		total += value
+	}
+	return total / float64(len(values))
+}
+
+// BatchReporter wraps an existing Reporter in order to implement sending stats
+// to the StatHat server in batch. The flow is only available for the EZ API.
+// The following describes how stats are sent:
+// 1.) PostEZCountOne is called and adds the stat request to a queue.
+// 2.) PostEZCountOne is called again on the same stat, the value in the queue is incremented.
+// 3.) After batchInterval amount of time, all stat requests from the queue are
+//     sent to the server.
+type BatchReporter struct {
+	sync.Mutex
+	r               Reporter
+	batchInterval   time.Duration
+	caches          map[string]*statCache
+	shutdownBatchCh chan struct{}
 }
 
 // DefaultReporter is the default instance of *Reporter.
@@ -235,7 +291,7 @@ func (sr *statReport) path() string {
 }
 
 func (sr *statReport) url() string {
-	return fmt.Sprintf("http://%s%s", hostname, sr.path())
+	return fmt.Sprintf("https://%s%s", hostname, sr.path())
 }
 
 // Using the classic API, posts a count to a stat using DefaultReporter.
@@ -296,82 +352,73 @@ func WaitUntilFinished(timeout time.Duration) bool {
 }
 
 // Using the classic API, posts a count to a stat.
-func (r *Reporter) PostCount(statKey, userKey string, count int) error {
-	r.reports <- newClassicStatCount(statKey, userKey, count)
+func (r *BasicReporter) PostCount(statKey, userKey string, count int) error {
+	r.add(newClassicStatCount(statKey, userKey, count))
 	return nil
 }
 
 // Using the classic API, posts a count to a stat at a specific time.
-func (r *Reporter) PostCountTime(statKey, userKey string, count int, timestamp int64) error {
+func (r *BasicReporter) PostCountTime(statKey, userKey string, count int, timestamp int64) error {
 	x := newClassicStatCount(statKey, userKey, count)
 	x.Timestamp = timestamp
-	r.reports <- x
+	r.add(x)
 	return nil
 }
 
 // Using the classic API, posts a count of 1 to a stat.
-func (r *Reporter) PostCountOne(statKey, userKey string) error {
+func (r *BasicReporter) PostCountOne(statKey, userKey string) error {
 	return r.PostCount(statKey, userKey, 1)
 }
 
 // Using the classic API, posts a value to a stat.
-func (r *Reporter) PostValue(statKey, userKey string, value float64) error {
-	r.reports <- newClassicStatValue(statKey, userKey, value)
+func (r *BasicReporter) PostValue(statKey, userKey string, value float64) error {
+	r.add(newClassicStatValue(statKey, userKey, value))
 	return nil
 }
 
 // Using the classic API, posts a value to a stat at a specific time.
-func (r *Reporter) PostValueTime(statKey, userKey string, value float64, timestamp int64) error {
+func (r *BasicReporter) PostValueTime(statKey, userKey string, value float64, timestamp int64) error {
 	x := newClassicStatValue(statKey, userKey, value)
 	x.Timestamp = timestamp
-	r.reports <- x
+	r.add(x)
 	return nil
 }
 
 // Using the EZ API, posts a count of 1 to a stat.
-func (r *Reporter) PostEZCountOne(statName, ezkey string) error {
+func (r *BasicReporter) PostEZCountOne(statName, ezkey string) error {
 	return r.PostEZCount(statName, ezkey, 1)
 }
 
 // Using the EZ API, posts a count to a stat.
-func (r *Reporter) PostEZCount(statName, ezkey string, count int) error {
-	r.reports <- newEZStatCount(statName, ezkey, count)
+func (r *BasicReporter) PostEZCount(statName, ezkey string, count int) error {
+	r.add(newEZStatCount(statName, ezkey, count))
 	return nil
 }
 
 // Using the EZ API, posts a count to a stat at a specific time.
-func (r *Reporter) PostEZCountTime(statName, ezkey string, count int, timestamp int64) error {
+func (r *BasicReporter) PostEZCountTime(statName, ezkey string, count int, timestamp int64) error {
 	x := newEZStatCount(statName, ezkey, count)
 	x.Timestamp = timestamp
-	r.reports <- x
+	r.add(x)
 	return nil
 }
 
 // Using the EZ API, posts a value to a stat.
-func (r *Reporter) PostEZValue(statName, ezkey string, value float64) error {
-	r.reports <- newEZStatValue(statName, ezkey, value)
+func (r *BasicReporter) PostEZValue(statName, ezkey string, value float64) error {
+	r.add(newEZStatValue(statName, ezkey, value))
 	return nil
 }
 
 // Using the EZ API, posts a value to a stat at a specific time.
-func (r *Reporter) PostEZValueTime(statName, ezkey string, value float64, timestamp int64) error {
+func (r *BasicReporter) PostEZValueTime(statName, ezkey string, value float64, timestamp int64) error {
 	x := newEZStatValue(statName, ezkey, value)
 	x.Timestamp = timestamp
-	r.reports <- x
+	r.add(x)
 	return nil
 }
 
-func (r *Reporter) processReports() {
-	for {
-		sr, ok := <-r.reports
-
-		if !ok {
-			if Verbose {
-				log.Printf("channel closed, stopping processReports()")
-			}
-			break
-		}
-
+func (r *BasicReporter) processReports() {
+	for sr := range r.reports {
 		if Verbose {
 			log.Printf("posting stat to stathat: %s, %v", sr.url(), sr.values())
 		}
@@ -393,6 +440,10 @@ func (r *Reporter) processReports() {
 		if Verbose {
 			body, _ := ioutil.ReadAll(resp.Body)
 			log.Printf("stathat post result: %s", body)
+		} else {
+			// Read the body even if we don't intend to use it. Otherwise golang won't pool the connection.
+			// See also: http://stackoverflow.com/questions/17948827/reusing-http-connections-in-golang/17953506#17953506
+			io.Copy(ioutil.Discard, resp.Body)
 		}
 
 		resp.Body.Close()
@@ -400,7 +451,14 @@ func (r *Reporter) processReports() {
 	r.wg.Done()
 }
 
-func (r *Reporter) finish() {
+func (r *BasicReporter) add(rep *statReport) {
+	select {
+	case r.reports <- rep:
+	default:
+	}
+}
+
+func (r *BasicReporter) finish() {
 	close(r.reports)
 	r.wg.Wait()
 	r.done <- true
@@ -408,7 +466,7 @@ func (r *Reporter) finish() {
 
 // Wait for all stats to be sent, or until timeout. Useful for simple command-
 // line apps to defer a call to this in main()
-func (r *Reporter) WaitUntilFinished(timeout time.Duration) bool {
+func (r *BasicReporter) WaitUntilFinished(timeout time.Duration) bool {
 	go r.finish()
 	select {
 	case <-r.done:
@@ -416,5 +474,132 @@ func (r *Reporter) WaitUntilFinished(timeout time.Duration) bool {
 	case <-time.After(timeout):
 		return false
 	}
-	return false
+}
+
+// NewBatchReporter creates a batching stat reporter. The interval parameter
+// specifies how often stats should be posted to the StatHat server.
+func NewBatchReporter(reporter Reporter, interval time.Duration) Reporter {
+
+	br := &BatchReporter{
+		r:               reporter,
+		batchInterval:   interval,
+		caches:          make(map[string]*statCache),
+		shutdownBatchCh: make(chan struct{}),
+	}
+
+	go br.batchLoop()
+
+	return br
+}
+
+func (br *BatchReporter) getEZCache(ezkey string) *statCache {
+	var cache *statCache
+	var ok bool
+
+	// Fetch ezkey cache
+	if cache, ok = br.caches[ezkey]; !ok {
+		cache = &statCache{
+			counterStats: make(map[string]int),
+			valueStats:   make(map[string][]float64),
+		}
+		br.caches[ezkey] = cache
+	}
+
+	return cache
+}
+
+func (br *BatchReporter) PostEZCount(statName, ezkey string, count int) error {
+	br.Lock()
+	defer br.Unlock()
+
+	// Increment stat by count
+	br.getEZCache(ezkey).counterStats[statName] += count
+
+	return nil
+}
+
+func (br *BatchReporter) PostEZCountOne(statName, ezkey string) error {
+	return br.PostEZCount(statName, ezkey, 1)
+}
+
+func (br *BatchReporter) PostEZValue(statName, ezkey string, value float64) error {
+	br.Lock()
+	defer br.Unlock()
+
+	// Update value cache
+	cache := br.getEZCache(ezkey)
+	cache.valueStats[statName] = append(cache.valueStats[statName], value)
+
+	return nil
+}
+
+func (br *BatchReporter) batchPost() {
+
+	// Copy and clear cache
+	br.Lock()
+	caches := br.caches
+	br.caches = make(map[string]*statCache)
+	br.Unlock()
+
+	// Post stats
+	for ezkey, cache := range caches {
+		// Post counters
+		for statName, count := range cache.counterStats {
+			br.r.PostEZCount(statName, ezkey, count)
+		}
+
+		// Post values
+		for statName := range cache.valueStats {
+			br.r.PostEZValue(statName, ezkey, cache.AverageValue(statName))
+		}
+	}
+}
+
+func (br *BatchReporter) batchLoop() {
+	for {
+		select {
+		case <-br.shutdownBatchCh:
+			return
+		case <-time.After(br.batchInterval):
+			br.batchPost()
+		}
+	}
+}
+
+func (br *BatchReporter) PostCount(statKey, userKey string, count int) error {
+	return br.r.PostCount(statKey, userKey, count)
+}
+
+func (br *BatchReporter) PostCountTime(statKey, userKey string, count int, timestamp int64) error {
+	return br.r.PostCountTime(statKey, userKey, count, timestamp)
+}
+
+func (br *BatchReporter) PostCountOne(statKey, userKey string) error {
+	return br.r.PostCountOne(statKey, userKey)
+}
+
+func (br *BatchReporter) PostValue(statKey, userKey string, value float64) error {
+	return br.r.PostValue(statKey, userKey, value)
+}
+
+func (br *BatchReporter) PostValueTime(statKey, userKey string, value float64, timestamp int64) error {
+	return br.r.PostValueTime(statKey, userKey, value, timestamp)
+}
+
+func (br *BatchReporter) PostEZCountTime(statName, ezkey string, count int, timestamp int64) error {
+	return br.r.PostEZCountTime(statName, ezkey, count, timestamp)
+}
+
+func (br *BatchReporter) PostEZValueTime(statName, ezkey string, value float64, timestamp int64) error {
+	return br.r.PostEZValueTime(statName, ezkey, value, timestamp)
+}
+
+func (br *BatchReporter) WaitUntilFinished(timeout time.Duration) bool {
+	// Shut down batch loop
+	close(br.shutdownBatchCh)
+
+	// One last post
+	br.batchPost()
+
+	return br.r.WaitUntilFinished(timeout)
 }

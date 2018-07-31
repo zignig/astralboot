@@ -1,0 +1,6 @@
+interface = "virbr0"
+Spawn = false
+Domain = ""
+DBname = ""
+Data = ""
+IPFS = false

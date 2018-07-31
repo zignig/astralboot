@@ -8,17 +8,19 @@ import (
 	"github.com/manucorporat/stats"
 )
 
-var ips = stats.New()
-var messages = stats.New()
-var users = stats.New()
-var mutexStats sync.RWMutex
-var savedStats map[string]uint64
+var (
+	ips        = stats.New()
+	messages   = stats.New()
+	users      = stats.New()
+	mutexStats sync.RWMutex
+	savedStats map[string]uint64
+)
 
 func statsWorker() {
 	c := time.Tick(1 * time.Second)
-	var lastMallocs uint64 = 0
-	var lastFrees uint64 = 0
-	for _ = range c {
+	var lastMallocs uint64
+	var lastFrees uint64
+	for range c {
 		var stats runtime.MemStats
 		runtime.ReadMemStats(&stats)
 
@@ -27,8 +29,8 @@ func statsWorker() {
 			"timestamp":  uint64(time.Now().Unix()),
 			"HeapInuse":  stats.HeapInuse,
 			"StackInuse": stats.StackInuse,
-			"Mallocs":    (stats.Mallocs - lastMallocs),
-			"Frees":      (stats.Frees - lastFrees),
+			"Mallocs":    stats.Mallocs - lastMallocs,
+			"Frees":      stats.Frees - lastFrees,
 			"Inbound":    uint64(messages.Get("inbound")),
 			"Outbound":   uint64(messages.Get("outbound")),
 			"Connected":  connectedUsers(),

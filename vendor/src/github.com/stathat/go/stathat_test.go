@@ -203,10 +203,9 @@ func TestPaths(t *testing.T) {
 
 func TestPosts(t *testing.T) {
 	setTesting()
-	Verbose = true
 	PostCountOne("statkey", "userkey")
 	p := <-testPostChannel
-	if p.url != "http://api.stathat.com/c" {
+	if p.url != "https://api.stathat.com/c" {
 		t.Errorf("expected classic count url")
 	}
 	if p.values.Get("key") != "statkey" {
@@ -221,7 +220,7 @@ func TestPosts(t *testing.T) {
 
 	PostCount("statkey", "userkey", 13)
 	p = <-testPostChannel
-	if p.url != "http://api.stathat.com/c" {
+	if p.url != "https://api.stathat.com/c" {
 		t.Errorf("expected classic count url")
 	}
 	if p.values.Get("key") != "statkey" {
@@ -236,7 +235,7 @@ func TestPosts(t *testing.T) {
 
 	PostValue("statkey", "userkey", 9.312)
 	p = <-testPostChannel
-	if p.url != "http://api.stathat.com/v" {
+	if p.url != "https://api.stathat.com/v" {
 		t.Errorf("expected classic value url")
 	}
 	if p.values.Get("key") != "statkey" {
@@ -251,7 +250,7 @@ func TestPosts(t *testing.T) {
 
 	PostEZCountOne("a stat", "pc@pc.com")
 	p = <-testPostChannel
-	if p.url != "http://api.stathat.com/ez" {
+	if p.url != "https://api.stathat.com/ez" {
 		t.Errorf("expected ez url")
 	}
 	if p.values.Get("stat") != "a stat" {
@@ -266,7 +265,7 @@ func TestPosts(t *testing.T) {
 
 	PostEZCount("a stat", "pc@pc.com", 213)
 	p = <-testPostChannel
-	if p.url != "http://api.stathat.com/ez" {
+	if p.url != "https://api.stathat.com/ez" {
 		t.Errorf("expected ez url")
 	}
 	if p.values.Get("stat") != "a stat" {
@@ -281,7 +280,7 @@ func TestPosts(t *testing.T) {
 
 	PostEZValue("a stat", "pc@pc.com", 2.13)
 	p = <-testPostChannel
-	if p.url != "http://api.stathat.com/ez" {
+	if p.url != "https://api.stathat.com/ez" {
 		t.Errorf("expected ez url")
 	}
 	if p.values.Get("stat") != "a stat" {

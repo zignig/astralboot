@@ -38,7 +38,8 @@ func correctStringWritten(t *testing.T, r *os.File, expected string) bool {
 // TestActivation forks out a copy of activation.go example and reads back two
 // strings from the pipes that are passed in.
 func TestActivation(t *testing.T) {
-	cmd := exec.Command("go", "run", "../examples/activation/activation.go")
+	arg0, cmdline := exampleCmd("activation")
+	cmd := exec.Command(arg0, cmdline...)
 
 	r1, w1, _ := os.Pipe()
 	r2, w2, _ := os.Pipe()
@@ -48,35 +49,37 @@ func TestActivation(t *testing.T) {
 	}
 
 	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, "LISTEN_FDS=2", "FIX_LISTEN_PID=1")
+	cmd.Env = append(cmd.Env, "LISTEN_FDS=2", "LISTEN_FDNAMES=fd1", "FIX_LISTEN_PID=1")
 
 	err := cmd.Run()
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 
-	correctStringWritten(t, r1, "Hello world")
-	correctStringWritten(t, r2, "Goodbye world")
+	correctStringWritten(t, r1, "Hello world: fd1")
+	correctStringWritten(t, r2, "Goodbye world: LISTEN_FD_4")
 }
 
 func TestActivationNoFix(t *testing.T) {
-	cmd := exec.Command("go", "run", "../examples/activation/activation.go")
+	arg0, cmdline := exampleCmd("activation")
+	cmd := exec.Command(arg0, cmdline...)
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "LISTEN_FDS=2")
 
 	out, _ := cmd.CombinedOutput()
-	if bytes.Contains(out, []byte("No files")) == false {
+	if !bytes.Contains(out, []byte("No files")) {
 		t.Fatalf("Child didn't error out as expected")
 	}
 }
 
 func TestActivationNoFiles(t *testing.T) {
-	cmd := exec.Command("go", "run", "../examples/activation/activation.go")
+	arg0, cmdline := exampleCmd("activation")
+	cmd := exec.Command(arg0, cmdline...)
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "LISTEN_FDS=0", "FIX_LISTEN_PID=1")
 
 	out, _ := cmd.CombinedOutput()
-	if bytes.Contains(out, []byte("No files")) == false {
+	if !bytes.Contains(out, []byte("No files")) {
 		t.Fatalf("Child didn't error out as expected")
 	}
 }

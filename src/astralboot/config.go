@@ -75,6 +75,8 @@ func GetConfig(path string) (c *Config) {
 		logger.Error("Interface error ", err)
 	}
 	addressList, _ := interf.Addrs()
+	i , err := net.Interfaces()
+	logger.Critical("interface %v ,%v ",i,err)
 	serverAddress, ipnet, _ := net.ParseCIDR(addressList[0].String())
 	logger.Notice("Server Address  : %s", serverAddress)
 	c.BaseIP = serverAddress

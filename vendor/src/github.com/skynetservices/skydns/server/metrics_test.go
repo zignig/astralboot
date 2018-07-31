@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/skynetservices/skydns/metrics"
+
 	"github.com/miekg/dns"
 )
 
@@ -55,19 +57,21 @@ func scrape(t *testing.T, key string) int {
 	return value
 }
 
-func TestMetricRequests(t *testing.T) {
+func TestMetrics(t *testing.T) {
 	s := newTestServer(t, false)
 	defer s.Stop()
 
-	v0 := scrape(t, "test_dns_request_count{type=\"udp\"}")
+	metrics.Port = "12300"
+	metrics.Subsystem = "test"
+	metrics.Namespace = "test"
+	metrics.Metrics()
+
 	query("miek.nl.", dns.TypeMX)
-	v1 := scrape(t, "test_dns_request_count{type=\"udp\"}")
+	v0 := scrape(t, "test_test_dns_request_count_total{system=\"recursive\"}")
+	query("miek.nl.", dns.TypeMX)
+	v1 := scrape(t, "test_test_dns_request_count_total{system=\"recursive\"}")
+
 	if v1 != v0+1 {
 		t.Fatalf("expecting %d, got %d", v0+1, v1)
-	}
-
-	v := scrape(t, "test_dns_request_count{type=\"tcp\"}")
-	if v != -1 { // if not hit, is does not show up in the metrics page.
-		t.Fatalf("expecting %d, got %d for", -1, v)
 	}
 }

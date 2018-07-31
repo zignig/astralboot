@@ -43,6 +43,10 @@ func (g *Backend) Records(name string, exact bool) ([]msg.Service, error) {
 	return l, nil // errors.New("FAIL")
 }
 
+func (g *Backend) HasSynced() (bool){
+	return true
+}
+
 func (g *Backend) ReverseRecord(name string) (*msg.Service, error) {
 	path, star := msg.PathWithWildcard(name)
 	fmt.Println(path, star)

@@ -38,7 +38,8 @@ func correctStringWrittenNet(t *testing.T, r net.Conn, expected string) bool {
 // TestActivation forks out a copy of activation.go example and reads back two
 // strings from the pipes that are passed in.
 func TestListeners(t *testing.T) {
-	cmd := exec.Command("go", "run", "../examples/activation/listen.go")
+	arg0, cmdline := exampleCmd("listen")
+	cmd := exec.Command(arg0, cmdline...)
 
 	l1, err := net.Listen("tcp", ":9999")
 	if err != nil {
@@ -73,14 +74,14 @@ func TestListeners(t *testing.T) {
 	r2.Write([]byte("Hi"))
 
 	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, "LISTEN_FDS=2", "FIX_LISTEN_PID=1")
+	cmd.Env = append(cmd.Env, "LISTEN_FDS=2", "LISTEN_FDNAMES=fd1:fd2", "FIX_LISTEN_PID=1")
 
-	out, err := cmd.Output()
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		println(string(out))
 		t.Fatalf(err.Error())
 	}
 
-	correctStringWrittenNet(t, r1, "Hello world")
-	correctStringWrittenNet(t, r2, "Goodbye world")
+	correctStringWrittenNet(t, r1, "Hello world: fd1")
+	correctStringWrittenNet(t, r2, "Goodbye world: fd2")
 }

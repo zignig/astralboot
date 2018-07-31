@@ -26,7 +26,8 @@ func ExampleHandler() {
 		},
 	}
 	log.Fatal(dhcp.ListenAndServe(handler))
-	// log.Fatal(dhcp.ListenAndServeIf("eth0",handler)) // Select interface on multi interface device
+	// log.Fatal(dhcp.Serve(dhcp.NewUDP4BoundListener("eth0",":67"), handler)) // Select interface on multi interface device - just linux for now
+	// log.Fatal(dhcp.Serve(dhcp.NewUDP4FilterListener("en0",":67"), handler)) // Work around for other OSes
 }
 
 type lease struct {
@@ -74,7 +75,7 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 			if leaseNum := dhcp.IPRange(h.start, reqIP) - 1; leaseNum >= 0 && leaseNum < h.leaseRange {
 				if l, exists := h.leases[leaseNum]; !exists || l.nic == p.CHAddr().String() {
 					h.leases[leaseNum] = lease{nic: p.CHAddr().String(), expiry: time.Now().Add(h.leaseDuration)}
-					return dhcp.ReplyPacket(p, dhcp.ACK, h.ip, net.IP(options[dhcp.OptionRequestedIPAddress]), h.leaseDuration,
+					return dhcp.ReplyPacket(p, dhcp.ACK, h.ip, reqIP, h.leaseDuration,
 						h.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 				}
 			}
