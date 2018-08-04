@@ -1,0 +1,6 @@
+#!ipxe{{ $serverIP := .BaseIP }}
+
+kernel http://{{ $serverIP }}/image/coreos/coreos_production_pxe.vmlinuz console=tty0 console=ttyS0 coreos.autologin=tty1 coreos.autologin=ttyS0 cloud-config-url=http://{{ $serverIP }}/config/coreos/cloud
+initrd http://{{ $serverIP }}/image/coreos/coreos_production_pxe_image.cpio.gz
+boot
+

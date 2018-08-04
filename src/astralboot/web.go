@@ -118,9 +118,9 @@ func (wh *WebHandler) GenTemplateData(ip net.IP, dist string) *TemplateData {
 // GetIP : just get the client ip
 func GetIP(c *gin.Context) (ip net.IP, err error) {
 	tmp := c.ClientIP()
-	ipStr, _, err := net.SplitHostPort(tmp)
-	ip = net.ParseIP(ipStr)
+	ip = net.ParseIP(tmp)
 	if err != nil {
+		panic(err)
 		logger.Error("Client IP fail , %s", err)
 		return nil, err
 	}

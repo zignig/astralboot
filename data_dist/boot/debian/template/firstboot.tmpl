@@ -1,0 +1,22 @@
+#!/bin/sh {{ $serverIP := .BaseIP }}
+
+# Add the first boot script
+cat <<EOF > /etc/systemd/system/firstboot.service 
+[Unit]
+Description=Install Script for the first boot
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/postinstall.sh
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable the unit
+systemctl enable firstboot
+wget --proxy=off http://{{ $serverIP }}/action/debian/postinstall -O /usr/local/bin/postinstall.sh
+chmod u+x /usr/local/bin/postinstall.sh
+
+# done 

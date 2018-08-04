@@ -32,15 +32,15 @@ func dhcpServer(c *Config, l *Store) {
 			dhcp.OptionDomainName:       []byte(c.Domain),
 		},
 	}
-	logger.Error("%v", LAS(c.BaseIP,handler))
+	logger.Error("%v", LAS(c,handler))
 //	logger.Error("%v", dhcp.ListenAndServeIf("virbr0",handler))
 }
 
-func LAS(addr net.IP,handler dhcp.Handler) error {
-	logger.Critical(addr.String())
+func LAS(c *Config ,handler dhcp.Handler) error {
+	logger.Critical(c.BaseIP.String())
 	//l, err := net.ListenPacket("udp4", "192.168.50.255:67")
 	//l, err := conn.NewUDP4FilterListener("virbr0",":67")
-	l, err := conn.NewUDP4BoundListener("virbr0",":67")
+	l, err := conn.NewUDP4BoundListener(c.Interf,":67")
 	if err != nil {
 		return err
 	}

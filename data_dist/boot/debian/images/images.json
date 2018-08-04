@@ -1,0 +1,12 @@
+{
+	"initrd.gz":
+		{
+		"url":	"http://ftp.nl.debian.org/debian/dists/jessie/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz",
+		"sha512":"37a384dcb1d40411bd520f5c7daf085e0b902708ada696d6d66637229ce1f361484546b1bcbcd0bef384a7163625295ca0d9ebe470d16f7173b536bba51cdaeb"
+		},
+	"linux":
+		{
+		"url" : "http://ftp.nl.debian.org/debian/dists/jessie/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux"
+		"sha512":"95d761c84612980c3fcd137c42634bb2eb4cc8ac2f0b114fbb1e54e02996917b3e63e4e4e7cca0299929ec6be3e7f4f4e115a5b1a86c3c41bda51eacdc0fea8a"
+		}
+}

@@ -16,6 +16,7 @@ type Domain struct {
 	entries   map[string]*msg.Service
 	addLock   sync.Mutex
 	DNSConfig *server.Config
+	c 	*Config
 }
 
 func NewDomain(prefix string) (d *Domain) {
@@ -28,9 +29,11 @@ func NewDomain(prefix string) (d *Domain) {
 
 func NewDnsServer(c *Config, leases *Store) (d *Domain) {
 	d = NewDomain(c.Domain)
+	d.c = c
 	active := leases.leases.Active()
 	// add the astralboot
 	d.Add("astralboot", c.BaseIP.String())
+	d.AddNS("dns/ns", c.BaseIP.String())
 	// add all the active nodes
 	for _, j := range active {
 		d.Add(j.Name, j.IP)
@@ -39,7 +42,8 @@ func NewDnsServer(c *Config, leases *Store) (d *Domain) {
 	d.DNSConfig = &server.Config{
 		Domain:  c.Domain,
 		DnsAddr: c.BaseIP.String() + ":53",
-		Verbose: false,
+		Verbose: true,
+		Nameservers: []string{c.UpstreamDNS.String()+":53"},
 	}
 	return d
 }
@@ -57,6 +61,17 @@ func (d *Domain) Run() {
 func (d *Domain) LongName(name string) (long string) {
 	long = d.prefix + "/" + name
 	return long
+}
+
+func (d *Domain) AddNS(name string, address string) {
+	d.addLock.Lock()
+	defer d.addLock.Unlock()
+	logger.Debug("Adding DNS entry : %s %s", name, address)
+	mess := &msg.Service{
+		Host: address,
+		Key: string(d.c.Domain)+"/"+name,
+	}
+	d.entries[d.LongName(name)] = mess
 }
 
 func (d *Domain) Add(name string, address string) {
@@ -78,6 +93,7 @@ func (d *Domain) Records(name string, exact bool) ([]msg.Service, error) {
 	if ok {
 		l := make([]msg.Service, 1)
 		l[0] = *val
+		logger.Debugf("%v",l)
 		return l, nil
 	}
 	return nil, errors.New("FAIL")

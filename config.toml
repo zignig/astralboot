@@ -1,6 +1,7 @@
 interface = "virbr0"
 Spawn = false
-Domain = ""
+Domain = "virtual"
+UpstreamDNS = "192.168.1.5"
 DBname = ""
 Data = ""
 IPFS = false

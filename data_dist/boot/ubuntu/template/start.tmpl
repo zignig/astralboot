@@ -1,0 +1,5 @@
+#!ipxe{{ $serverIP := .BaseIP }}
+
+kernel http://{{ $serverIP }}/image/ubuntu/linux ramdisk_size=13746 root=/dev/ram  auto=true priority=critical preseed/url=http://{{ $serverIP}}/action/ubuntu/preseed
+initrd http://{{ $serverIP }}/image/ubuntu/initrd.gz
+boot

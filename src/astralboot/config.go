@@ -41,6 +41,7 @@ type Config struct {
 	Gateway   net.IP
 	Subnet    net.IP
 	DNSServer net.IP
+	UpstreamDNS net.IP
 	Domain    string `toml:"Domain",omitempty`
 	DBname    string `toml:"DBname",omitempty`
 	Data      string `toml:"Data",omitempty`
